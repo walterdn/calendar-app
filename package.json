@@ -1,0 +1,23 @@
+{
+  "name": "calendar",
+  "version": "1.0.0",
+  "description": "a calendar",
+  "main": "server.js",
+  "dependencies": {
+    "webpack-stream": "^2.1.1"
+  },
+  "devDependencies": {
+    "angular": "^1.4.8",
+    "angular-route": "^1.4.8",
+    "body-parser": "^1.14.2",
+    "express": "^4.13.3",
+    "mongoose": "^4.2.7",
+    "webpack-stream": "^2.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
