@@ -1,7 +1,17 @@
-<div>
+<section ng-init="renderCalendar()">
 
-Calendar goes here
+<button ng-click="scroll(-1)"> PREVIOUS </button>
+<button ng-click="scroll(1)"> NEXT </button>
 
-{{test}}
+<div class="header"> {{displayMonth()}} </div>
 
-</div>
+<section class="container">
+
+	<div class="day clearfix" ng-repeat="day in days" ng-class="hideOtherMonths(day.getMonth())"> {{day.getDate()}} </div>
+
+</section>
+
+
+
+
+</section>
