@@ -18,37 +18,3 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 }
-
-body {
-	background: grey;
-}
-
-.container {
-	background: grey;
-	margin: 30px auto 0 auto;
-	width: 65em;
-	display: flex;
-	flex-wrap: wrap;
-}
-
-.day {
-	border: 1px solid black;
-	width: 9em;
-	height: 9em;
-	background: white;
-}
-
-.clearfix {
-	overflow: auto;
-}
-
-.another-month {
-	background: lightgrey;
-}
-
-.header {
-	color: white;
-	font-size: 5em;
-	text-align: center;
-	margin-top: 15px;
-}

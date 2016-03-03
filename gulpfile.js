@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var webpack = require('webpack-stream');
+var sass = require('gulp-sass');
 
 gulp.task('htmlFiles:dev', function() {
   gulp.src('app/**/*.html')
@@ -7,7 +8,8 @@ gulp.task('htmlFiles:dev', function() {
 });
 
 gulp.task('cssFiles:dev', function() {
-  gulp.src('app/css/*.css')
+  gulp.src('app/scss/*.scss')
+  .pipe(sass())
   .pipe(gulp.dest('build/css/'));
 });
 

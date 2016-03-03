@@ -11,6 +11,7 @@
     "angular-route": "^1.4.8",
     "body-parser": "^1.14.2",
     "express": "^4.13.3",
+    "gulp-sass": "^2.2.0",
     "mongoose": "^4.2.7",
     "webpack-stream": "^2.1.1"
   },

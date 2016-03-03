@@ -1,17 +1,29 @@
-<section ng-init="renderCalendar()">
+<section ng-init="onPageLoad()">
 
 <button ng-click="scroll(-1)"> PREVIOUS </button>
 <button ng-click="scroll(1)"> NEXT </button>
 
-<div class="header"> {{displayMonth()}} </div>
+<div class="header"> {{displayMonthAndYear()}} </div>
 
-<section class="container">
-
-	<div class="day clearfix" ng-repeat="day in days" ng-class="hideOtherMonths(day.getMonth())"> {{day.getDate()}} </div>
-
+<section class="day-names">
+	<div class="day-name" ng-repeat="name in dayNames">{{name}}</div>
 </section>
 
 
+<section class="calendar-container">
+	<div class="day" ng-repeat="day in days" ng-class="hideOtherMonths(day.date.getMonth())" 
+		 ng-dblclick="showEventCreationPopup(day.date)"> {{day.date.getDate()}} 
+		<div ng-repeat="event in day.events" class="event"> {{event.name}} </div>
+	</div>
+</section>
 
+</section>
 
+<section class="new-event-popup" ng-show="showEventPopup">
+	<form class="eventForm" name="eventForm" ng-submit="createEvent()">
+		<input type="text" maxlength="40" required data-ng-model="userInput.eventName" autocomplete="off"><br>
+		<input type="text" maxlength="40" required data-ng-model="userInput.eventDescription" autocomplete="off"><br>
+		<input type="text" maxlength="40" required data-ng-model="userInput.eventTime" autocomplete="off"><br>
+		<button type="submit" data-ng-disabled="eventForm.$invalid">Create</button>
+	</form> 
 </section>

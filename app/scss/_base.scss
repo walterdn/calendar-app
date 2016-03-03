@@ -1,0 +1,65 @@
+body {
+	background: grey;
+}
+
+.calendar-container {
+	background: grey;
+	margin: 0 auto 30px auto;
+	width: 65em;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.day {
+	border: 1px solid black;
+	width: 9em;
+	height: 8em;
+	background: white;
+}
+
+.clearfix {
+	overflow: auto;
+}
+
+.another-month {
+	background: lightgrey;
+}
+
+.header {
+	color: white;
+	font-size: 5em;
+	text-align: center;
+}
+
+.day-names {
+	display: flex;
+	width: 65em;
+	background: grey;
+	margin: 10px auto 0 auto;
+}
+
+.day-name {
+	background: white;
+	border: 1px solid black;
+	width: 9em;
+	height: 1em;
+	text-align: center;
+	padding: 3px 0 3px 0;
+}
+.event {
+	background: black;
+	color: white;
+	margin-top: 2px;
+}
+
+.new-event-popup {
+	border: 1px solid black;
+	position: absolute;
+	background: white;
+	height: 300px;
+	width: 60%;
+	top: 10%;
+	left: 20%;
+
+}
+
