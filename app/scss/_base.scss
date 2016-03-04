@@ -1,9 +1,10 @@
 body {
-	background: grey;
+	background: white;
+	font-family: 'Trebuchet MS', Helvetica, sans-serif;
 }
 
 .calendar-container {
-	background: grey;
+	background: white;
 	margin: 0 auto 30px auto;
 	width: 65em;
 	display: flex;
@@ -21,12 +22,12 @@ body {
 	overflow: auto;
 }
 
-.another-month {
+.out-of-cur-month {
 	background: lightgrey;
 }
 
 .header {
-	color: white;
+	color: black;
 	font-size: 5em;
 	text-align: center;
 }
@@ -34,7 +35,7 @@ body {
 .day-names {
 	display: flex;
 	width: 65em;
-	background: grey;
+	background: white;
 	margin: 10px auto 0 auto;
 }
 
@@ -47,19 +48,73 @@ body {
 	padding: 3px 0 3px 0;
 }
 .event {
-	background: black;
 	color: white;
 	margin-top: 2px;
 }
 
 .new-event-popup {
+	display: flex;
 	border: 1px solid black;
 	position: absolute;
 	background: white;
-	height: 300px;
-	width: 60%;
+	padding: 6px;
+	width: 30%;
 	top: 10%;
-	left: 20%;
+	left: 35%;
+}
+
+.label {
+	padding: 3px;
+}
+
+.input-labels {
+	width: 130px;
+}
+
+.event-inputs {
+	border: none;
+	margin-top: 5px;
+	width: 250px;
+	border-bottom: 1px solid gray;	
+}
+
+.event-create-btn {
+	margin-top: 5px;
+	padding: 4px;
+}
+
+.event-category {
+	margin-top: 5px;
+	width: 250px;
+	background: white;
+}
+
+.event-close-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: 1px solid black;
+	padding: 3px;
+}
+
+.category {
+	font-size: 1.4em;
+	padding: 3px;
+	color: white;
+}
+
+.new-category-btn {
 
 }
 
+.delete-event {
+	border: 1px solid black;
+	position: absolute;
+	right: 0;
+	z-index: 999;
+	background: white;
+}
+
+.current-day {
+	background: #e6ffff;
+}

@@ -5,9 +5,14 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     var today = new Date(); //only gets used for initializaiton of global variables
     $scope.dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; //Static array. populates calendar header via ng-repeat
+    $scope.categories = [{name: 'Personal',
+                          color: 'green'},
+                         {name: 'Profressional',
+                          color: 'red'}];
     $scope.showEventPopup = false;
+    $scope.showingNewCategoryForm = false;
     $scope.userInput = {};
-    var eventDate;
+    var dayPointer;
     
 // _ _ _ _ _ GLOBAL VARIABLES _ _ _ _ _ //
 
@@ -20,21 +25,65 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     function renderCalendar() {
         setMonthLengths(); //sets global var monthLengths based on year, accounting for leap years
-		$scope.days = []; //populates each day in calendar via ng-repeat
-        var extraDays = findExtraDays(); //returns an object with two properties
+        $scope.days = []; //this array will populate each day in calendar via ng-repeat
+        var extraDays = findExtraDays(); //returns an object with two properties, both numbers
         
-	    for(var i=extraDays.beginning; i<monthLengths[curMonthNum] + extraDays.end; i++) {
-	    	var day = new Date(year, curMonthNum, i+1); //Automatic adjustments made by Date Object: April 0 -> March 31, April -1 -> March 30, April 31 -> May 1, etc.
+        for(var i=extraDays.beginning; i<monthLengths[curMonthNum] + extraDays.end; i++) {
+            var day = new Date(year, curMonthNum, i+1); //Automatic adjustments made by Date Object: April 0 -> March 31, April -1 -> March 30, April 31 -> May 1, etc.
             $scope.days.push({date: day, events: []});
-	    }
+        }
 
-        $scope.days.forEach(day =>{
+        $scope.days.forEach(day => {
             var dateString = getDateString(day.date);
-            $http.get('/events/' + dateString).then(function (res){
+            $http.get('/events/date/' + dateString).then(function (res){
                 day.events = res.data;
             });
         });
     }
+
+    $scope.deleteEvent = function(id, day) {
+        var dateString = getDateString(day.date);
+        var successCb = function(res) {
+            console.log('Event deleted.');
+            $http.get('/events/date/' + dateString).then(function (res){ //reloads events for that day after deletion
+                day.events = res.data;
+            });
+        };
+        var errorCb = function(err) {
+            console.log('Deletion failed.');
+        };
+        var req = {
+            method: 'DELETE',
+            url:'/events/' + id
+        };
+        $http(req).then(successCb, errorCb);
+    };
+
+    $scope.createCategory = function() {
+        var inputs = $scope.userInput;
+        $scope.userInput = {};
+        var successCb = function(res) {
+            console.log('Category saved.');
+            $http.get('/categories/all').then(function (res){
+                var lastCategoryAdded = res.data[res.data.length-1];
+                $scope.categories.push(lastCategoryAdded);
+            });
+        };
+        var errorCb = function(err) {
+            console.log('Save failed.');
+        };
+        var req = {
+            method: 'POST',
+            url:'/newcategory/',
+            data: 
+                {   
+                    name: inputs.categoryName,
+                    color: inputs.categoryColor
+                }
+        };
+
+        $http(req).then(successCb, errorCb);
+    };
 
     $scope.scroll = function(val) {
     	curMonthNum += val;
@@ -43,7 +92,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
             year++;
             curMonthNum = 0;
         } else if (curMonthNum === -1) { //if month is before January, set month to December and decrement year
-            year--;
+            year--; 
             curMonthNum = 11;
         }
 
@@ -52,16 +101,15 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     
     $scope.createEvent = function() {
         var inputs = $scope.userInput;
+        var eventDate = getDateString(dayPointer.date);
+        var monthNum = dayPointer.date.getMonth();
+        console.log(monthNum);
+
         $scope.userInput = {};
-        var successCb = function(res) {
-            //CHANGE THIS PART TO ONLY MAKE ONE REQUEST/// 
-            $scope.days.forEach(day =>{
-                var dateString = getDateString(day.date);
-                $http.get('/events/' + dateString).then(function (res){
-                    day.events = res.data;
-                });
+        var successCb = function(res) {          
+            $http.get('/events/date/' + eventDate).then(function (res){
+                dayPointer.events = res.data;
             });
-            ///////////////////////
             console.log('Event saved.');
             $scope.showEventPopup = false;
         };
@@ -76,27 +124,64 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                     name: inputs.eventName,
                     description: inputs.eventDescription,
                     date: eventDate,
-                    time: inputs.eventTime
+                    month: monthNum,
+                    time: inputs.eventTime,
+                    category: inputs.eventCategory
                 }
         };
+
         $http(req).then(successCb, errorCb);
     };
 
 
 // _ _ _ _ _ HELPER FUNCTIONS _ _ _ _ _ //
 
-    $scope.hideOtherMonths = function(monthNum) {
-        if(monthNum !== curMonthNum) return 'another-month';
+    function loadCategories() {
+        $http.get('/categories/all').then(function (res){
+            res.data.forEach(category => {
+                $scope.categories.push(category);
+                renderCalendar();
+            });
+        });
+    }
+
+    $scope.getColorFromCategory = function(categoryName) {
+        var color = 'black';            
+        $scope.categories.forEach(category => {
+            if(category.name === categoryName) color = category.color;
+        });
+        return color;           
+    };
+
+    $scope.setDayNameBG = function(index) { // in the calendar header with the names of each day, this method gives a special class to the current day
+        if (index === today.getDay()) return 'current-day';
+    };
+
+    $scope.showCategoryCreation = function() {
+        $scope.showingNewCategoryForm = !$scope.showingNewCategoryForm;
+    };
+
+    $scope.setBG = function(date) {
+        var monthNum = date.getMonth();
+        var dateNum = date.getDate();
+
+        if(monthNum !== curMonthNum) return 'out-of-cur-month';
+        if(dateNum === today.getDate() && monthNum === today.getMonth()) return 'current-day';
         else return 'current-month';
     };
 
-    $scope.onPageLoad = function() {
-        renderCalendar();
+    $scope.onPageLoad = function() { //runs on init. 
+        loadCategories(); //renders calendar after loading categories
     };
 
-    $scope.showEventCreationPopup = function(date) {
+    $scope.showEventCreationPopup = function(day) {
         $scope.showEventPopup = true;
-        eventDate = getDateString(date);
+        dayPointer = day; 
+    };
+
+    $scope.closeEventCreationPopup = function() {
+        $scope.userInput = {};
+        $scope.showEventPopup = false;
     };
 
     $scope.displayMonthAndYear = function() {
