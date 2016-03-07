@@ -6,9 +6,9 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     var today = new Date(); //only gets used for initializaiton of global variables
     $scope.dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; //Static array. populates calendar header via ng-repeat
     $scope.categories = [{name: 'Personal',
-                          color: 'green'},
+                          color: '#009933'},
                          {name: 'Profressional',
-                          color: 'red'}];
+                          color: '#00e699'}];
     $scope.showEventPopup = false;
     $scope.showingNewCategoryForm = false;
     $scope.userInput = {};
@@ -19,11 +19,13 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     var curMonthNum = today.getMonth(); //month which calendar is currently displaying. Intializes to current month
     var year = today.getFullYear(); //year which calendar is currently displaying. Initializes to current year
     var monthLengths; //gets set by setMonthLengths function when needed
+    var dateToIndexMap = {}; //used to look up an index in $scope.days based on a dateString
 
 
 // _ _ _ _ _ MAIN FUNCTIONS _ _ _ _ _ //
 
     function renderCalendar() {
+        dateToIndexMap = {};
         setMonthLengths(); //sets global var monthLengths based on year, accounting for leap years
         $scope.days = []; //this array will populate each day in calendar via ng-repeat
         var extraDays = findExtraDays(); //returns an object with two properties, both numbers
@@ -31,15 +33,28 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         for(var i=extraDays.beginning; i<monthLengths[curMonthNum] + extraDays.end; i++) {
             var day = new Date(year, curMonthNum, i+1); //Automatic adjustments made by Date Object: April 0 -> March 31, April -1 -> March 30, April 31 -> May 1, etc.
             $scope.days.push({date: day, events: []});
+            var dateString = getDateString(day);
+            dateToIndexMap[dateString] = (i - extraDays.beginning);
         }
+        
+        var curYearMonthString = year + '-' + curMonthNum;
+        var prevYearMonthString = getPrevYearMonth(year, curMonthNum);
+        var nextYearMonthString = getNextYearMonth(year, curMonthNum);
 
-        $scope.days.forEach(day => {
-            var dateString = getDateString(day.date);
-            $http.get('/events/date/' + dateString).then(function (res){
-                day.events = res.data;
+        loadEventsForMonth(curYearMonthString);
+        if (extraDays.beginning !== 0) loadEventsForMonth(prevYearMonthString);
+        if (extraDays.end !== 0) loadEventsForMonth(nextYearMonthString);
+    }
+
+    function loadEventsForMonth(yearMonthString) {
+        $http.get('/events/year-month/' + yearMonthString).then(function (res){
+            res.data.forEach(event => {
+                var index = dateToIndexMap[event.date];
+                if (index >= 0 && index < $scope.days.length) $scope.days[index].events.push(event);
             });
         });
     }
+
 
     $scope.deleteEvent = function(id, day) {
         var dateString = getDateString(day.date);
@@ -61,7 +76,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     $scope.createCategory = function() {
         var inputs = $scope.userInput;
-        $scope.userInput = {};
+
         var successCb = function(res) {
             console.log('Category saved.');
             $http.get('/categories/all').then(function (res){
@@ -82,7 +97,12 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                 }
         };
 
-        $http(req).then(successCb, errorCb);
+        if (validTextColour(inputs.categoryColor)) {
+            $scope.userInput = {};
+            $http(req).then(successCb, errorCb);
+        } else {
+            alert('Not a valid css color string.');
+        }
     };
 
     $scope.scroll = function(val) {
@@ -103,7 +123,8 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var inputs = $scope.userInput;
         var eventDate = getDateString(dayPointer.date);
         var monthNum = dayPointer.date.getMonth();
-        console.log(monthNum);
+        var yearNum = dayPointer.date.getFullYear();
+        var yearMonthString = yearNum + '-' + monthNum;
 
         $scope.userInput = {};
         var successCb = function(res) {          
@@ -124,7 +145,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                     name: inputs.eventName,
                     description: inputs.eventDescription,
                     date: eventDate,
-                    month: monthNum,
+                    yearmonth: yearMonthString,
                     time: inputs.eventTime,
                     category: inputs.eventCategory
                 }
@@ -140,8 +161,8 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         $http.get('/categories/all').then(function (res){
             res.data.forEach(category => {
                 $scope.categories.push(category);
-                renderCalendar();
             });
+            renderCalendar();
         });
     }
 
@@ -154,7 +175,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     };
 
     $scope.setDayNameBG = function(index) { // in the calendar header with the names of each day, this method gives a special class to the current day
-        if (index === today.getDay()) return 'current-day';
+        if (index === today.getDay() && curMonthNum === today.getMonth()) return 'current-day';
     };
 
     $scope.showCategoryCreation = function() {
@@ -165,9 +186,9 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var monthNum = date.getMonth();
         var dateNum = date.getDate();
 
-        if(monthNum !== curMonthNum) return 'out-of-cur-month';
         if(dateNum === today.getDate() && monthNum === today.getMonth()) return 'current-day';
-        else return 'current-month';
+        if(monthNum !== curMonthNum) return 'out-of-cur-month';
+        else return 'no-special-style';
     };
 
     $scope.onPageLoad = function() { //runs on init. 
@@ -211,6 +232,34 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         return {beginning: daysToAddToStart, end: daysToAddToEnd};    
     }
 
+    function getPrevYearMonth(year, monthNum) {
+        var prevMonthNum = monthNum - 1;
+
+        if (prevMonthNum === -1) return (year-1) + '-11'; ///returns 2015-11 instead of 2016--1
+        else return year + '-' + prevMonthNum;
+    }
+
+    function getNextYearMonth(year, monthNum) {
+        var nextMonthNum = monthNum + 1;
+
+        if (nextMonthNum === 12) return (year+1) + '-0'; // returns 2017-0 instead of 2016-12
+        else return year + '-' + nextMonthNum;
+    }
+
+    function validTextColour(stringToTest) { // taken from http://stackoverflow.com/questions/6386090/validating-css-color-names
+    //Alter the following conditions according to your need.
+        if (stringToTest === "") { return false; }
+        if (stringToTest === "inherit") { return false; }
+        if (stringToTest === "transparent") { return false; }
+
+        var image = document.createElement("img");
+        image.style.color = "rgb(0, 0, 0)";
+        image.style.color = stringToTest;
+        if (image.style.color !== "rgb(0, 0, 0)") { return true; }
+        image.style.color = "rgb(255, 255, 255)";
+        image.style.color = stringToTest;
+        return image.style.color !== "rgb(255, 255, 255)";
+    }
 
 // _ _ _ _ _ END OF CONTROLLER _ _ _ _ _ //
 }]);

@@ -1,28 +1,26 @@
 <section ng-init="onPageLoad()">
 
-<button ng-click="scroll(-1)"> PREVIOUS </button>
-<button ng-click="scroll(1)"> NEXT </button>
-
 <button class="new-category-btn" ng-click="showCategoryCreation()"> New Category </button>
 <div ng-if="showingNewCategoryForm">
 	<form class="new-category-form" name="newCategoryForm" ng-submit="createCategory()">
-		<input type="text" maxlength="40" required data-ng-model="userInput.categoryName" autocomplete="off"><br>
-		<select required data-ng-model="userInput.categoryColor">
-			<option value="orange"> Orange </option>
-			<option value="yellow"> Yellow </option>
-			<option value="purple"> Purple </option>
-		</select>
+		<label>Name:</label><input type="text" maxlength="20" required data-ng-model="userInput.categoryName" autocomplete="off"><br>
+		<label>Color:</label><input type="text" maxlength="12" required data-ng-model="userInput.categoryColor" autocomplete="off"><br>
+	
 		<button data-ng-disabled="newCategoryForm.$invalid">Create Category</button>
 	</form> 
 </div>
 
 
-<div class="header"> {{displayMonthAndYear()}} </div>
+<div class="top-bar"> 
+	<a class="prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
+	<div> {{displayMonthAndYear()}} </div>
+	<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
+</div>
+
 
 <section class="day-names">
 	<div class="day-name" ng-repeat="name in dayNames" ng-class=	"setDayNameBG($index)">{{name}}</div>
 </section>
-
 
 <section class="calendar-container">
 	<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
@@ -35,6 +33,7 @@
 </section>
 
 </section>
+
 
 <section class="new-event-popup" ng-show="showEventPopup">
 	<div ng-click="closeEventCreationPopup()" class="event-close-btn"> X </div>
@@ -56,11 +55,6 @@
 			value="{{category.name}}">{{category.name}}</option>
 		</select>
 
-
 		<button type="submit" class="event-create-btn" data-ng-disabled="eventForm.$invalid">Create Event</button>
 	</form> 
-	
-	<br>
-
-
 </section>

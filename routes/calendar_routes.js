@@ -23,8 +23,8 @@ calendarRouter.get('/events/date/:date', function(req, res) {
   });
 });
 
-calendarRouter.get('/events/month/:month', function(req, res) {
-  Event.find({month: req.params.month}, function(err, data) {
+calendarRouter.get('/events/year-month/:yearmonth', function(req, res) {
+  Event.find({yearmonth: req.params.yearmonth}, function(err, data) {
     if (err) return handleError(err, res);
 
     res.json(data);

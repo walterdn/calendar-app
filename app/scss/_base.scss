@@ -3,6 +3,16 @@ body {
 	font-family: 'Trebuchet MS', Helvetica, sans-serif;
 }
 
+a {
+	color: #404040;
+	text-decoration: none;
+}
+
+a:hover, a:focus {
+	color: black;
+	text-decoration: none;
+}
+
 .calendar-container {
 	background: white;
 	margin: 0 auto 30px auto;
@@ -18,18 +28,30 @@ body {
 	background: white;
 }
 
-.clearfix {
-	overflow: auto;
-}
-
 .out-of-cur-month {
-	background: lightgrey;
+	background: #ebebe0;
 }
 
-.header {
-	color: black;
+.prev-arrow {
+	position: absolute;
+	cursor: default;
+	left: -28px;
+}
+
+.next-arrow {
+	position: absolute;
+	cursor: default;
+	right: -10px;
+}
+
+.top-bar {
+	display: flex;
+	position: relative;
+	color: #404040;
 	font-size: 5em;
-	text-align: center;
+	width: 840px;
+	justify-content: center;
+	margin: 0 auto 0 auto;
 }
 
 .day-names {
@@ -43,13 +65,15 @@ body {
 	background: white;
 	border: 1px solid black;
 	width: 9em;
-	height: 1em;
 	text-align: center;
 	padding: 3px 0 3px 0;
 }
+
 .event {
 	color: white;
 	margin-top: 2px;
+	padding: 2px;
+	font-size: 1.22em;
 }
 
 .new-event-popup {
@@ -116,5 +140,14 @@ body {
 }
 
 .current-day {
-	background: #e6ffff;
+	background: #ffffcc;
+}
+
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* non-prefixed version, currently not supported by any browser */
 }
