@@ -1,9 +1,8 @@
 module.exports = function(app) {
 app.controller('CalendarController', ['$scope', '$http', function($scope, $http) {
 
-// _ _ _ _ _ HELPER VARIABLES _ _ _ _ _ //
+// _ _ _ _ _ SCOPE VARIABLES _ _ _ _ _ //
 
-    var today = new Date(); //only gets used for initializaiton of global variables
     $scope.dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; //Static array. populates calendar header via ng-repeat
     $scope.categories = [{name: 'Personal',
                           color: '#009933'},
@@ -12,10 +11,11 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     $scope.showEventPopup = false;
     $scope.showingNewCategoryForm = false;
     $scope.userInput = {};
-    var dayPointer;
     
 // _ _ _ _ _ GLOBAL VARIABLES _ _ _ _ _ //
 
+    var dayPointer; //gets set by showEventCreationPopup, then accessed again in createEvent should the user save an event
+    var today = new Date(); 
     var curMonthNum = today.getMonth(); //month which calendar is currently displaying. Intializes to current month
     var year = today.getFullYear(); //year which calendar is currently displaying. Initializes to current year
     var monthLengths; //gets set by setMonthLengths function when needed
@@ -54,7 +54,6 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
             });
         });
     }
-
 
     $scope.deleteEvent = function(id, day) {
         var dateString = getDateString(day.date);
@@ -126,7 +125,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var yearNum = dayPointer.date.getFullYear();
         var yearMonthString = yearNum + '-' + monthNum;
 
-        $scope.userInput = {};
+        $scope.userInput = {}; //resets input fields
         var successCb = function(res) {          
             $http.get('/events/date/' + eventDate).then(function (res){
                 dayPointer.events = res.data;
@@ -192,12 +191,15 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     };
 
     $scope.onPageLoad = function() { //runs on init. 
+        angular.element('#color1').colorPicker();
         loadCategories(); //renders calendar after loading categories
     };
 
     $scope.showEventCreationPopup = function(day) {
         $scope.showEventPopup = true;
-        dayPointer = day; 
+        dayPointer = day; // dayPointer will be accessed from createEvent function
+        var date = day.date;
+        $scope.newEventDate = $scope.dayNames[date.getDay()] + ' ' + (date.getMonth()+1) + '/' + date.getDate();
     };
 
     $scope.closeEventCreationPopup = function() {

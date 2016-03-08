@@ -1,60 +1,79 @@
-<section ng-init="onPageLoad()">
+<a ng-click="showCategoryCreation()">
+	<i class="glyphicon glyphicon-plus-sign" ng-class="{'rotate':showingNewCategoryForm}"></i>
+</a>
 
-<button class="new-category-btn" ng-click="showCategoryCreation()"> New Category </button>
-<div ng-if="showingNewCategoryForm">
-	<form class="new-category-form" name="newCategoryForm" ng-submit="createCategory()">
-		<label>Name:</label><input type="text" maxlength="20" required data-ng-model="userInput.categoryName" autocomplete="off"><br>
-		<label>Color:</label><input type="text" maxlength="12" required data-ng-model="userInput.categoryColor" autocomplete="off"><br>
-	
-		<button data-ng-disabled="newCategoryForm.$invalid">Create Category</button>
-	</form> 
-</div>
-
-
-<div class="top-bar"> 
-	<a class="prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
-	<div> {{displayMonthAndYear()}} </div>
-	<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
-</div>
-
-
-<section class="day-names">
-	<div class="day-name" ng-repeat="name in dayNames" ng-class=	"setDayNameBG($index)">{{name}}</div>
-</section>
-
-<section class="calendar-container">
-	<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
-		 ng-dblclick="showEventCreationPopup(day)"> {{day.date.getDate()}} 
-		<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
-		ng-dblclick="deleteEvent(event._id, day)"> 
-			{{event.name}} 
+<section class="category-management" ng-show="showingNewCategoryForm">
+	<form name="newCategoryForm" ng-submit="createCategory()">
+		<div class="input-group">
+		  <span class="input-group-addon">Name</span>
+		  <input type="text" class="form-control" maxlength="20" required ng-model="userInput.categoryName">
 		</div>
-	</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Color</span>
+		  <input type="text" class="form-control" id="color1" required ng-model="userInput.categoryColor">
+		</div>
+		<button class="create-category-btn form-btn" type="submit" ng-disabled="newCategoryForm.$invalid">Save Category</button>
+	</form> 
 </section>
+
+
+<section ng-init="onPageLoad()" class="main-container">
+
+	<div class="top-bar"> 
+		<a class="prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
+		<div> {{displayMonthAndYear()}} </div>
+		<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
+	</div>
+
+
+	<section class="day-names">
+		<div class="day-name" ng-repeat="name in dayNames" ng-class="setDayNameBG($index)">{{name}}</div>
+	</section>
+
+	<section class="calendar-container">
+		<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
+		ng-dblclick="showEventCreationPopup(day)"><div class="date-number">{{day.date.getDate()}}</div> 
+			<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
+			ng-dblclick="deleteEvent(event._id, day)"> 
+				{{event.name}} 
+			</div>
+		</div>
+	</section>
 
 </section>
 
 
 <section class="new-event-popup" ng-show="showEventPopup">
-	<div ng-click="closeEventCreationPopup()" class="event-close-btn"> X </div>
+	<div ng-click="closeEventCreationPopup()" class="new-event-close-btn"><i class="glyphicon glyphicon-remove"></i></div>
+	<div class="new-event-header"> New Event on <strong>{{newEventDate}}</strong></div>
 
-	<section class="input-labels"> 
-		<div class="label"> Name : </div>
-		<div class="label"> Time : </div>
-		<div class="label"> Description : </div>
-		<div class="label"> Category : </div>
-	</section>
+	<form name="eventForm" ng-submit="createEvent()">
 
-	<form class="eventForm" name="eventForm" ng-submit="createEvent()">
-		<input type="text" class="event-inputs" maxlength="26" required data-ng-model="userInput.eventName" autocomplete="off"><br>
-		<input type="text" class="event-inputs" maxlength="40" required data-ng-model="userInput.eventTime" autocomplete="off"><br>
-		<input type="text" class="event-inputs" maxlength="40" required data-ng-model="userInput.eventDescription" autocomplete="off"><br>
-		<select class="event-category" required data-ng-model="userInput.eventCategory">
-			<option ng-repeat="category in categories" class="category" 
-			ng-style="{'background':'{{category.color}}'}" 
-			value="{{category.name}}">{{category.name}}</option>
-		</select>
+		<div class="input-group">
+		  <span class="input-group-addon">Name</span>
+		  <input type="text" class="form-control" placeholder="What?" required ng-model="userInput.eventName">
+		</div>
 
-		<button type="submit" class="event-create-btn" data-ng-disabled="eventForm.$invalid">Create Event</button>
-	</form> 
+		<div class="input-group">
+		  <span class="input-group-addon">Time</span>
+		  <input type="text" class="form-control" placeholder="When?" required ng-model="userInput.eventTime">
+		</div>
+
+		<div class="input-group">
+		  <span class="input-group-addon">Notes</span>
+		  <input type="text" class="form-control" ng-model="userInput.eventDescription">
+		</div>	
+
+		<div class="input-group">
+		  <span class="input-group-addon">Category</span>
+		  <select class="form-control" required ng-model="userInput.eventCategory">
+				<option ng-repeat="category in categories" class="category-choice" 
+				ng-style="{'background':'{{category.color}}'}" 
+				value="{{category.name}}">{{category.name}}</option>
+			</select>
+		</div>
+
+		<button type="submit" class="event-create-btn form-btn" ng-disabled="eventForm.$invalid">Save Event</button>
+
+	</form>
 </section>
