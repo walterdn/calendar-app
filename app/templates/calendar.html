@@ -2,78 +2,165 @@
 	<i class="glyphicon glyphicon-plus-sign" ng-class="{'rotate':showingNewCategoryForm}"></i>
 </a>
 
-<section class="category-management" ng-show="showingNewCategoryForm">
-	<form name="newCategoryForm" ng-submit="createCategory()">
+<section class="category-mgmt" ng-class="{'unhide':showingNewCategoryForm}">
+	<div class="popup-header category-mgmt-nav">
+		<div class="nav-tab" ng-click="showNewTab()" ng-class="{'unselected-tab':!showingNewTab}">New</div>
+		<div class="nav-tab" ng-click="showEditTab()" ng-class="{'unselected-tab':!showingEditTab}">Edit</div>
+	</div>
+	
+	<form name="newCategoryForm" class="new-category-form" ng-submit="createCategory()" ng-show="showingNewTab">
 		<div class="input-group">
 		  <span class="input-group-addon">Name</span>
-		  <input type="text" class="form-control" maxlength="20" required ng-model="userInput.categoryName">
+		  <input type="text" class="form-control" maxlength="15" required ng-model="categoryInput.name">
 		</div>
 		<div class="input-group">
 		  <span class="input-group-addon">Color</span>
-		  <input type="text" class="form-control" id="color1" required ng-model="userInput.categoryColor">
+		  <input type="text" class="form-control" id="color1" required ng-model="categoryInput.color">
 		</div>
 		<button class="create-category-btn form-btn" type="submit" ng-disabled="newCategoryForm.$invalid">Save Category</button>
-	</form> 
+	</form>
+	
+	<section ng-show="showingEditTab">
+		<div class="categories" ng-repeat="category in categories" ng-click="selectCategory(category)" 
+		ng-class="{'selected':category==selectedCategory}">
+			<div class="category-names">{{category.name}}</div>
+			<div class="category-colors" ng-style="{'background':'{{category.color}}'}"></div>
+		</div>
+
+		<form class="edit-category-form" name="editCategoryForm" ng-show="selectedCategory" >
+			<div class="input-group input-group-sm">
+			  <span class="input-group-addon">Name</span>
+			  <input type="text" class="form-control" maxlength="15" placeholder="{{selectedCategory.name}}" 
+			  ng-model="categoryInput.editName">
+			</div>
+			<div class="input-group input-group-sm">
+			  <span class="input-group-addon">Color</span>
+			  <input type="text" class="form-control" id="color2" ng-model="categoryInput.editColor">
+			</div>
+			<div class="category-edit-btns-container">
+				<button class="form-btn" ng-click="editCategory()" ng-disabled="disableEdit()">Save</button>
+				<button class="form-btn" ng-click="deleteCategory()">Delete</button>
+			</div>
+		</form>
+	</section>
 </section>
+
+
 
 
 <section ng-init="onPageLoad()" class="main-container">
 
-	<div class="top-bar"> 
+	<div class="top-display-bar"> 
 		<a class="prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
-		<div> {{displayMonthAndYear()}} </div>
+		<div ng-click="openMonthView()"> {{displayViewDate()}} </div>
 		<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
 	</div>
 
+	<section ng-show="!showingDayView">
+		<section class="day-names">
+			<div class="day-name" ng-repeat="name in dayNames" ng-class="setDayNameBG($index)">{{name}}</div>
+		</section>
 
-	<section class="day-names">
-		<div class="day-name" ng-repeat="name in dayNames" ng-class="setDayNameBG($index)">{{name}}</div>
-	</section>
-
-	<section class="calendar-container">
-		<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
-		ng-dblclick="showEventCreationPopup(day)"><div class="date-number">{{day.date.getDate()}}</div> 
-			<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
-			ng-dblclick="deleteEvent(event._id, day)"> 
-				{{event.name}} 
+		<section class="calendar-container">
+			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
+			ng-dblclick="openDayView(day, $index)">
+				<div class="date-number" ng-click="showEventCreationPopup(day)">{{day.date.getDate()}}</div> 
+				<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
+				ng-dblclick="deleteEvent(event._id, day)"> 
+					{{event.name}} 
+				</div>
 			</div>
+		</section>
+	</section>
+	
+	<section class="day-view-container" ng-show="showingDayView">
+		<div class="time-slots" ng-repeat="time in timesInDay">
+			<div class="time">{{timify(time)}}</div>
+			<div class="time-slot"> </div>
 		</div>
+
+		<div class="day-view-event" ng-repeat="event in dayViewDay.events" 
+		ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}">
+			{{event.name}}
+		</div>
+
 	</section>
 
 </section>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 <section class="new-event-popup" ng-show="showEventPopup">
 	<div ng-click="closeEventCreationPopup()" class="new-event-close-btn"><i class="glyphicon glyphicon-remove"></i></div>
-	<div class="new-event-header"> New Event on <strong>{{newEventDate}}</strong></div>
+	<div class="popup-header"> New Event on <strong>{{newEventDate}}</strong></div>
 
 	<form name="eventForm" ng-submit="createEvent()">
 
 		<div class="input-group">
 		  <span class="input-group-addon">Name</span>
-		  <input type="text" class="form-control" placeholder="What?" required ng-model="userInput.eventName">
+		  <input type="text" class="form-control" placeholder="What?" required ng-model="eventInput.name">
 		</div>
 
 		<div class="input-group">
 		  <span class="input-group-addon">Time</span>
-		  <input type="text" class="form-control" placeholder="When?" required ng-model="userInput.eventTime">
+		  <div class="time-selects-container">
+			  <select class="time-select start-hour" ng-options="hour for hour in hours" ng-model="eventInput.startHour">
+			  </select>
+
+			  <div class="select-divider"> : </div>
+			  
+			  <select class="time-select start-minute" ng-options="minutes for minutes in minuteStrings" ng-model="eventInput.startMinute">
+			  </select>
+
+			  <div class="select-divider"> </div>
+
+			  <select class="time-select start-am-pm" ng-options="str for str in AMPM" ng-model="eventInput.startAMPM">
+			  </select>
+
+			  <div class="select-divider"> &#8210; </div>
+
+				<select class="time-select start-hour" ng-options="hour for hour in hours" ng-model="eventInput.endHour">
+			  </select>
+
+			  <div class="select-divider"> : </div>
+			  
+			  <select class="time-select start-minute" ng-options="minutes for minutes in minuteStrings" ng-model="eventInput.endMinute">
+			  </select>
+
+			  <div class="select-divider"> </div>
+
+			  <select class="time-select start-am-pm" ng-options="str for str in AMPM" ng-model="eventInput.endAMPM">
+			  </select>
+
+		  </div>
 		</div>
 
 		<div class="input-group">
 		  <span class="input-group-addon">Notes</span>
-		  <input type="text" class="form-control" ng-model="userInput.eventDescription">
+		  <input type="text" class="form-control" ng-model="eventInput.description">
 		</div>	
 
 		<div class="input-group">
 		  <span class="input-group-addon">Category</span>
-		  <select class="form-control" required ng-model="userInput.eventCategory">
+		  <select class="form-control" required ng-model="eventInput.category">
 				<option ng-repeat="category in categories" class="category-choice" 
 				ng-style="{'background':'{{category.color}}'}" 
-				value="{{category.name}}">{{category.name}}</option>
+				value="{{category._id}}">{{category.name}}</option>
 			</select>
 		</div>
 
 		<button type="submit" class="event-create-btn form-btn" ng-disabled="eventForm.$invalid">Save Event</button>
-
 	</form>
 </section>

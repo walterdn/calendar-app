@@ -72,3 +72,13 @@ calendarRouter.delete('/categories/:id', function(req, res) {
     res.json({msg: 'Category deleted.'});
   });
 });
+
+calendarRouter.put('/categories/edit/:id', bodyParser, function (req, res) {
+  var categoryData = req.body;
+  delete categoryData._id;
+  Category.update({_id: req.params.id}, categoryData, function (err) {
+    if (err) return handleError(err, res); 
+
+    res.json({msg: 'Category modified.'});
+  });
+});

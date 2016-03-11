@@ -4,13 +4,12 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 // _ _ _ _ _ SCOPE VARIABLES _ _ _ _ _ //
 
     $scope.dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; //Static array. populates calendar header via ng-repeat
-    $scope.categories = [{name: 'Personal',
-                          color: '#009933'},
-                         {name: 'Profressional',
-                          color: '#00e699'}];
+    $scope.categories = [];
     $scope.showEventPopup = false;
     $scope.showingNewCategoryForm = false;
-    $scope.userInput = {};
+    $scope.showingEditTab = true;
+    $scope.eventInput = {};
+    $scope.categoryInput = {};
     
 // _ _ _ _ _ GLOBAL VARIABLES _ _ _ _ _ //
 
@@ -20,9 +19,52 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     var year = today.getFullYear(); //year which calendar is currently displaying. Initializes to current year
     var monthLengths; //gets set by setMonthLengths function when needed
     var dateToIndexMap = {}; //used to look up an index in $scope.days based on a dateString
-
+    var dayViewPointer; //index number of dayViewDay in $scope.days
 
 // _ _ _ _ _ MAIN FUNCTIONS _ _ _ _ _ //
+
+    $scope.deleteCategory = function() {
+        var id = $scope.selectedCategory._id;
+
+        var successCb = function(res) {
+            $scope.selectedCategory = null;
+            loadCategories();
+            console.log('Category deleted.');
+        };
+        var errorCb = function(err) {
+            console.log('Deletion failed.');
+        };
+        var req = {
+            method: 'DELETE',
+            url:'/categories/' + id
+        };
+        $http(req).then(successCb, errorCb);
+    };
+
+    $scope.editCategory = function() {
+        var inputs = $scope.categoryInput;
+        var id = $scope.selectedCategory._id;
+        var successCb = function(res) {
+            $scope.selectedCategory = null;
+            angular.element('.colorPicker-picker').css('background', 'white');
+            $scope.categoryInput = {};
+            loadCategories();
+            console.log('Category modified.');
+        };
+        var errorCb = function(err) {
+            console.log('Edit failed.');
+        };
+        var req = {
+            method: 'PUT',
+            url:'/categories/edit/' + id,
+            data: 
+                {   
+                    name: inputs.editName,
+                    color: inputs.editColor
+                }
+        };
+        $http(req).then(successCb, errorCb);
+    }
 
     function renderCalendar() {
         dateToIndexMap = {};
@@ -74,13 +116,14 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     };
 
     $scope.createCategory = function() {
-        var inputs = $scope.userInput;
+        var inputs = $scope.categoryInput;
 
         var successCb = function(res) {
             console.log('Category saved.');
             $http.get('/categories/all').then(function (res){
                 var lastCategoryAdded = res.data[res.data.length-1];
                 $scope.categories.push(lastCategoryAdded);
+                angular.element('.colorPicker-picker').css('background', 'white');
             });
         };
         var errorCb = function(err) {
@@ -91,13 +134,13 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
             url:'/newcategory/',
             data: 
                 {   
-                    name: inputs.categoryName,
-                    color: inputs.categoryColor
+                    name: inputs.name,
+                    color: inputs.color
                 }
         };
 
-        if (validTextColour(inputs.categoryColor)) {
-            $scope.userInput = {};
+        if (validTextColour(inputs.color)) {
+            $scope.categoryInput = {};
             $http(req).then(successCb, errorCb);
         } else {
             alert('Not a valid css color string.');
@@ -105,27 +148,46 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     };
 
     $scope.scroll = function(val) {
-    	curMonthNum += val;
+        if ($scope.showingDayView) {
 
-        if (curMonthNum === 12) { //if month is after December, set month back to January and increment year
-            year++;
-            curMonthNum = 0;
-        } else if (curMonthNum === -1) { //if month is before January, set month to December and decrement year
-            year--; 
-            curMonthNum = 11;
+            dayViewPointer += val;
+            $scope.dayViewDay = $scope.days[dayViewPointer];
+
+        } else {
+
+            curMonthNum += val;
+
+            if (curMonthNum === 12) { //if month is after December, set month back to January and increment year
+                year++;
+                curMonthNum = 0;
+            } else if (curMonthNum === -1) { //if month is before January, set month to December and decrement year
+                year--; 
+                curMonthNum = 11;
+            }
+
+        	renderCalendar();
         }
-
-    	renderCalendar();
     };
     
     $scope.createEvent = function() {
-        var inputs = $scope.userInput;
+        var inputs = $scope.eventInput;
         var eventDate = getDateString(dayPointer.date);
         var monthNum = dayPointer.date.getMonth();
         var yearNum = dayPointer.date.getFullYear();
         var yearMonthString = yearNum + '-' + monthNum;
+        var MIN_PER_HOUR = 60;
 
-        $scope.userInput = {}; //resets input fields
+        var startHour = Number(inputs.startHour);
+        if (startHour == 12) startHour = 0;
+        var endHour = Number(inputs.endHour);
+        if (endHour == 12) endHour = 0;
+        var startTime = startHour + Number(inputs.startMinute/MIN_PER_HOUR);
+        if (inputs.startAMPM == 'PM') startTime += 12;
+        var endTime = endHour + Number(inputs.endMinute/MIN_PER_HOUR); 
+        if (inputs.endAMPM == 'PM') endTime += 12;
+        var time = [parseFloat(startTime).toFixed(4), parseFloat(endTime).toFixed(4)];
+
+        $scope.eventInput = {}; //resets input fields
         var successCb = function(res) {          
             $http.get('/events/date/' + eventDate).then(function (res){
                 dayPointer.events = res.data;
@@ -141,34 +203,108 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
             url:'/newevent/',
             data: 
                 { 
-                    name: inputs.eventName,
-                    description: inputs.eventDescription,
+                    name: inputs.name,
+                    description: inputs.description,
                     date: eventDate,
                     yearmonth: yearMonthString,
-                    time: inputs.eventTime,
-                    category: inputs.eventCategory
+                    time: time,
+                    category: inputs.category
                 }
         };
 
         $http(req).then(successCb, errorCb);
     };
 
+    $scope.openDayView = function(day, index) {
+        $scope.dayViewDay = day;
+        dayViewPointer = index;
+
+        $scope.timesInDay = [];
+        var startTime = 9; //6:00 AM
+        var endTime = 23.5; //11:30 PM
+
+        for(var i=startTime; i<=23.5; i+= .5) {
+            $scope.timesInDay.push(i);
+        }
+
+        $scope.showingDayView = true;
+    };
+
 
 // _ _ _ _ _ HELPER FUNCTIONS _ _ _ _ _ //
 
+    $scope.openMonthView = function() {
+        $scope.showingDayView = false;
+    };
+
+    $scope.calculateHeight = function(time) {
+        var VERT_PIXELS_PER_HOUR = 46;
+        var eventLength = time[1] - time[0]; //in hours. 4.6667 = 4 hours and 40 minutes
+        var height = eventLength * VERT_PIXELS_PER_HOUR;
+
+        return height;
+    };
+
+    $scope.assignMargin = function(time) {
+        var VERT_PIXELS_PER_HOUR = 46;
+
+        var startTable = 9; //CHANGE TO MATCH OTHER 
+        var timeFromTop = time[0] - startTable;
+        var pixels = Math.round(timeFromTop * VERT_PIXELS_PER_HOUR);
+        return pixels + 'px';
+    };
+
+    $scope.timify = function(num) { //takes a number where 0 <= number < 24      
+        var AMorPM;
+        var hours = Math.floor(num);
+        var minutes = num - hours;
+        minutes = Math.floor(minutes * 60).toFixed(0);
+        if (hours < 12) {
+            AMorPM = 'AM';
+        } else {
+            AMorPM = 'PM';
+            hours = hours - 12;
+        } 
+
+        if (hours == 0) hours = 12;
+        if (minutes < 10) minutes = '0' + minutes;
+
+        var timeString = hours + ':' + minutes + ' ' + AMorPM;
+        return timeString;
+    };
+
+    $scope.selectCategory = function(category) {
+        if (category == $scope.selectedCategory) {
+            $scope.selectedCategory = null;
+        } else {
+            $scope.selectedCategory = category;
+            angular.element('.colorPicker-picker').css('background', category.color);
+        }
+
+    };
+
+    $scope.showNewTab = function() {
+        $scope.showingNewTab = true;
+        $scope.showingEditTab = false;
+    };
+
+    $scope.showEditTab = function() {
+        $scope.showingNewTab = false;
+        $scope.showingEditTab = true;
+    };
+
     function loadCategories() {
         $http.get('/categories/all').then(function (res){
-            res.data.forEach(category => {
-                $scope.categories.push(category);
-            });
+            $scope.categories = res.data;
+            $scope.selectedCategory = $scope.categories[0];
             renderCalendar();
         });
     }
 
-    $scope.getColorFromCategory = function(categoryName) {
+    $scope.getColorFromCategory = function(categoryID) {
         var color = 'black';            
         $scope.categories.forEach(category => {
-            if(category.name === categoryName) color = category.color;
+            if(category._id === categoryID) color = category.color;
         });
         return color;           
     };
@@ -179,6 +315,8 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     $scope.showCategoryCreation = function() {
         $scope.showingNewCategoryForm = !$scope.showingNewCategoryForm;
+        $scope.categoryInput = {};
+        angular.element('.colorPicker-picker').css('background', 'white');
     };
 
     $scope.setBG = function(date) {
@@ -192,24 +330,53 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     $scope.onPageLoad = function() { //runs on init. 
         angular.element('#color1').colorPicker();
+        angular.element('#color2').colorPicker();
         loadCategories(); //renders calendar after loading categories
     };
 
     $scope.showEventCreationPopup = function(day) {
         $scope.showEventPopup = true;
+        $scope.hours = ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+        $scope.minuteStrings = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+        $scope.AMPM = ['AM', 'PM'];
+        $scope.eventInput.startHour = $scope.hours[0];
+        $scope.eventInput.startMinute = $scope.minuteStrings[0];
+        $scope.eventInput.startAMPM = $scope.AMPM[1];
+        $scope.eventInput.endHour = $scope.hours[1];
+        $scope.eventInput.endMinute = $scope.minuteStrings[0];
+        $scope.eventInput.endAMPM = $scope.AMPM[1];
+
         dayPointer = day; // dayPointer will be accessed from createEvent function
         var date = day.date;
         $scope.newEventDate = $scope.dayNames[date.getDay()] + ' ' + (date.getMonth()+1) + '/' + date.getDate();
     };
 
     $scope.closeEventCreationPopup = function() {
-        $scope.userInput = {};
+        $scope.eventInput = {};
         $scope.showEventPopup = false;
     };
 
-    $scope.displayMonthAndYear = function() {
+    $scope.displayViewDate = function() {
+        var returnString = '';
         var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        return monthNames[curMonthNum] + ' ' + year;
+
+        if($scope.showingDayView) {
+            var date = $scope.dayViewDay.date;
+            var dayName = $scope.dayNames[date.getDay()];
+            var monthName = monthNames[date.getMonth()];
+            var dateNum = date.getDate();
+            var yearNum = date.getFullYear();
+            returnString = trim(dayName) + ' ' + trim(monthName) + ' ' + dateNum + ' ' + yearNum;
+        } else {
+            returnString = monthNames[curMonthNum] + ' ' + year;
+        }
+
+        return returnString;
+    };
+
+    function trim(string) {
+        if (string.length > 3) return string.substring(0, 3);
+        else return string;
     };
 
     function getDateString(date) {
@@ -247,6 +414,13 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         if (nextMonthNum === 12) return (year+1) + '-0'; // returns 2017-0 instead of 2016-12
         else return year + '-' + nextMonthNum;
     }
+
+    $scope.disableEdit = function() {
+        var inputs = $scope.categoryInput;
+        if (inputs.editColor) return false;
+        if (inputs.editName) return false;
+        return true;
+    };
 
     function validTextColour(stringToTest) { // taken from http://stackoverflow.com/questions/6386090/validating-css-color-names
     //Alter the following conditions according to your need.

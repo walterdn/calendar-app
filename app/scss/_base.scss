@@ -1,6 +1,7 @@
 body {
 	background: white;
 	font-family: 'Trebuchet MS', Helvetica, sans-serif;
+	overflow-x: hidden;
 }
 
 a {
@@ -68,7 +69,7 @@ a:hover, a:focus {
 	right: 0;
 }
 
-.top-bar {
+.top-display-bar {
 	display: flex;
 	position: relative;
 	color: #595959;
@@ -129,9 +130,9 @@ a:hover, a:focus {
 	left: 35%;
 }
 
-.new-event-header {
+.popup-header {
 	font-size: 1.15em;
-	padding-top: 5px;
+	padding-top: 4px;
 	height: 30px;
 	border-bottom: 1px solid black;
 	text-align: center;
@@ -174,30 +175,42 @@ a:hover, a:focus {
 }
 
 .create-category-btn {
-	margin-left: 43px;
+	margin-left: 49px;
 	width: 230px;
 }
 
-.category-management {
+.category-mgmt {
 	position: absolute;
 	background: white;
 	border: 1px solid black;
-	padding: 5px;
+	border-right: none;
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
 	top: 65px;
-	right: 5px;
+	right: -330px;
 	width: 330px;
 	z-index: 5;
+	-webkit-transition: -webkit-transform 1s;
+	transition: transform 1s;
 }
 
-.category-management .input-group {
-	margin: 10px 8px 15px 8px;
+.new-category-form .input-group {
+	margin-top: 14px;
+	margin-bottom: 12px;
+	margin-left: 15px;
 }
 
-.category-management .form-control {
+.edit-category-form .input-group {
+	margin-top: 7px;
+	margin-bottom: 7px;
+	margin-left: 15px;
+}
+
+.category-mgmt .form-control {
 	width: 233px;
 }
 
-.category-management .input-group-addon {
+.category-mgmt .input-group-addon {
 	width: 63px;
 }
 
@@ -206,12 +219,163 @@ a:hover, a:focus {
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	-webkit-transition: -webkit-transform .5s;
-	transition: transform .5s;
+	-webkit-transition: -webkit-transform 1s;
+	transition: transform 1s;
 }
 
 .rotate {
-  transform: rotate(45deg);
+  transform: rotate(225deg);
 }
 
+.edit-header {
+	border-top: 1px solid black;
+	margin-top: 6px;
+}
 
+.categories {
+	display: flex;
+	background: white;
+	justify-content: space-between;
+	align-items: baseline;
+	margin: 7px 18px 8px 18px;
+	border-bottom: 1px solid #bfbfbf;
+}
+
+.category-colors {
+    height: 21px;
+    width: 131px;
+    position: absolute;
+    right: 18px;
+}
+
+.category-names {
+	font-size: 1.11em;
+}
+
+.selected {
+    border: 3px solid #99e6ff;
+    border-radius: 4px;
+    width: 309px;
+    height: 27px;
+    margin-left: 9px;
+    padding-left: 6px;
+}
+
+.category-mgmt-nav {
+	display: flex;
+	padding: 0;
+	border-bottom: none;
+	background: white;
+	margin-bottom: 11px;
+}
+
+.nav-tab {
+	flex-grow: 1;
+	padding-top: 5px;
+}
+
+.nav-tab:first-child {
+	border-right: 1px solid black;
+}
+
+.unselected-tab {
+	background: #f2f2f2;
+	border-bottom: 1px solid black;
+}
+
+.unhide {
+	transform: translateX(-330px);
+}
+
+.category-edit-btns-container {
+	display: flex;
+}
+
+.category-edit-btns-container .form-btn {
+	width: 139px;
+	margin-top: 7px;
+	margin-left: 16px;
+}
+
+.day-view-container {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	background: lightgray;
+	width: 880px;
+	margin: 0 auto 30px auto;
+	border-left: 1px solid #666666;
+	border-bottom: 1px solid #666666;
+}
+
+.time {
+	color: #808080;
+	padding-top: 0;
+	padding-left: 13px;
+	width: 90px;
+	font-size: .75em;
+	letter-spacing: .7px;
+	background: white;
+	border-top: 1px solid #666666;
+	border-right: 1px solid #666666;
+}
+
+.time-slot {
+	background: white;
+	border-top: 1px solid #666666;
+	border-right: 1px solid #666666;
+	width: 790px;
+}
+
+.time-slots {
+	display: flex;
+	flex-direction: row;
+	background: yellow;
+	height: 23px;
+}
+
+.day-view-event {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	border-top: 1px solid gray;
+	border-bottom: 1px solid gray;
+	font-size: 1.3em;
+	text-align: center;
+	color: white;
+	left: 90px;
+	width: 788px;
+	opacity: .8;
+}
+
+.time-select {
+	background: white;
+	border: 1.8px solid #d9d9d9;
+	padding: 6px;
+	height: 33px;
+	font-size: 1.1em;
+	letter-spacing: 1px;
+}
+
+.time-selects-container {
+	display: flex;
+}
+
+.select-divider {
+	padding-top: 4px;
+	font-size: 1.2em;
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
+.start-am-pm {
+	font-size: 1em;
+	letter-spacing: 0px;
+}
+
+.time-selects-container select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
