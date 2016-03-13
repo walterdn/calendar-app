@@ -1,3 +1,9 @@
+<a ng-click="openWeekView()" class="week-view-btn">
+show week
+</a>
+
+
+
 <a ng-click="showCategoryCreation()">
 	<i class="glyphicon glyphicon-plus-sign" ng-class="{'rotate':showingNewCategoryForm}"></i>
 </a>
@@ -56,12 +62,12 @@
 		<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
 	</div>
 
-	<section ng-show="!showingDayView">
+	<section class="month-view-container" ng-show="view == 'month'">
 		<section class="day-names">
 			<div class="day-name" ng-repeat="name in dayNames" ng-class="setDayNameBG($index)">{{name}}</div>
 		</section>
 
-		<section class="calendar-container">
+		<section class="month-days-container">
 			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
 			ng-dblclick="openDayView(day, $index)">
 				<div class="date-number" ng-click="showEventCreationPopup(day)">{{day.date.getDate()}}</div> 
@@ -73,27 +79,37 @@
 		</section>
 	</section>
 	
-	<section class="day-view-container" ng-show="showingDayView">
+	<section class="day-view-container" ng-show="view == 'day'">
 		<div class="time-slots" ng-repeat="time in timesInDay">
 			<div class="time">{{timify(time)}}</div>
 			<div class="time-slot"> </div>
 		</div>
 
-		<div class="day-view-event" ng-repeat="event in dayViewDay.events" 
+		<div class="dynamic-event day-view-event" ng-repeat="event in dayViewDay.events" 
 		ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}">
 			{{event.name}}
 		</div>
+	</section>
 
+
+	<section class="week-view-container" ng-show="view == 'week'">
+		<div class="week-view-times-container">
+			<div class="time"></div>
+			<div class="time" ng-repeat="time in timesInDay">{{timify(time)}}</div>
+		</div>
+
+		<section class="week-view-day" ng-repeat="day in weekViewDays">
+			<div class="week-view-time-slot week-view-day-name"> {{getWeekViewDayHeader(day.date)}} </div>
+			<div class="week-view-time-slot" ng-repeat="time in timesInDay"></div>
+			
+			<div class="dynamic-event week-view-event" ng-repeat="event in day.events" 
+			ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}">
+			{{event.name}}
+			</div>
+		</section>
 	</section>
 
 </section>
-
-
-
-
-
-
-
 
 
 
@@ -110,7 +126,7 @@
 
 		<div class="input-group">
 		  <span class="input-group-addon">Name</span>
-		  <input type="text" class="form-control" placeholder="What?" required ng-model="eventInput.name">
+		  <input type="text" class="form-control" placeholder="What?" ng-model="eventInput.name">
 		</div>
 
 		<div class="input-group">
@@ -154,13 +170,13 @@
 
 		<div class="input-group">
 		  <span class="input-group-addon">Category</span>
-		  <select class="form-control" required ng-model="eventInput.category">
+		  <select class="form-control" ng-model="eventInput.category">
 				<option ng-repeat="category in categories" class="category-choice" 
 				ng-style="{'background':'{{category.color}}'}" 
 				value="{{category._id}}">{{category.name}}</option>
 			</select>
 		</div>
 
-		<button type="submit" class="event-create-btn form-btn" ng-disabled="eventForm.$invalid">Save Event</button>
+		<button type="submit" class="event-create-btn form-btn" ng-disabled="disableSaveEventBtn()">Save Event</button>
 	</form>
 </section>

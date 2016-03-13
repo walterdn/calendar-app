@@ -10,9 +10,11 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     $scope.showingEditTab = true;
     $scope.eventInput = {};
     $scope.categoryInput = {};
+    $scope.view = 'month'; //either month, week, or day
     
 // _ _ _ _ _ GLOBAL VARIABLES _ _ _ _ _ //
 
+    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     var dayPointer; //gets set by showEventCreationPopup, then accessed again in createEvent should the user save an event
     var today = new Date(); 
     var curMonthNum = today.getMonth(); //month which calendar is currently displaying. Intializes to current month
@@ -20,8 +22,10 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     var monthLengths; //gets set by setMonthLengths function when needed
     var dateToIndexMap = {}; //used to look up an index in $scope.days based on a dateString
     var dayViewPointer; //index number of dayViewDay in $scope.days
+    var weekViewPointer = 0; //index number of first Sunday of weekview in $scope.days
 
 // _ _ _ _ _ MAIN FUNCTIONS _ _ _ _ _ //
+
 
     $scope.deleteCategory = function() {
         var id = $scope.selectedCategory._id;
@@ -94,6 +98,13 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                 var index = dateToIndexMap[event.date];
                 if (index >= 0 && index < $scope.days.length) $scope.days[index].events.push(event);
             });
+            $scope.days.forEach(day => {
+                if(day.events.length > 0) {
+                    day.events.sort(function(a, b) {
+                        return (a.time[0] - b.time[0]);
+                    });
+                }
+            });
         });
     }
 
@@ -102,7 +113,9 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var successCb = function(res) {
             console.log('Event deleted.');
             $http.get('/events/date/' + dateString).then(function (res){ //reloads events for that day after deletion
-                day.events = res.data;
+                day.events = res.data.sort(function(a, b) {
+                    return (a.time[0] - b.time[0]);
+                });
             });
         };
         var errorCb = function(err) {
@@ -148,15 +161,18 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     };
 
     $scope.scroll = function(val) {
-        if ($scope.showingDayView) {
-
+        if ($scope.view == 'day') {
             dayViewPointer += val;
             $scope.dayViewDay = $scope.days[dayViewPointer];
+        }
 
-        } else {
+        if($scope.view == 'week') {
+            weekViewPointer += 7;
+            setWeekViewDays();
+        } 
 
+        if ($scope.view == 'month') {
             curMonthNum += val;
-
             if (curMonthNum === 12) { //if month is after December, set month back to January and increment year
                 year++;
                 curMonthNum = 0;
@@ -164,7 +180,6 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                 year--; 
                 curMonthNum = 11;
             }
-
         	renderCalendar();
         }
     };
@@ -175,22 +190,25 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var monthNum = dayPointer.date.getMonth();
         var yearNum = dayPointer.date.getFullYear();
         var yearMonthString = yearNum + '-' + monthNum;
-        var MIN_PER_HOUR = 60;
+        
+        var collidingEvents = [];
 
-        var startHour = Number(inputs.startHour);
-        if (startHour == 12) startHour = 0;
-        var endHour = Number(inputs.endHour);
-        if (endHour == 12) endHour = 0;
-        var startTime = startHour + Number(inputs.startMinute/MIN_PER_HOUR);
-        if (inputs.startAMPM == 'PM') startTime += 12;
-        var endTime = endHour + Number(inputs.endMinute/MIN_PER_HOUR); 
-        if (inputs.endAMPM == 'PM') endTime += 12;
-        var time = [parseFloat(startTime).toFixed(4), parseFloat(endTime).toFixed(4)];
+        var time = convertTimeInputsToRangeArray(inputs);
 
-        $scope.eventInput = {}; //resets input fields
+        dayPointer.events.forEach(event => {
+            var timeCollision = checkTimeCollisions(time, event.time); //returns boolean. true = time collision
+            if (timeCollision) {
+                collidingEvents.push(event.name);
+            } 
+        });
+
         var successCb = function(res) {          
+            $scope.eventInput = {}; //resets input fields
             $http.get('/events/date/' + eventDate).then(function (res){
-                dayPointer.events = res.data;
+                var index = dateToIndexMap[eventDate];
+                $scope.days[index].events = res.data.sort(function(a, b) {
+                    return a.time[0] - b.time[0];
+                });
             });
             console.log('Event saved.');
             $scope.showEventPopup = false;
@@ -212,8 +230,26 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
                 }
         };
 
-        $http(req).then(successCb, errorCb);
+        if (collidingEvents.length > 0) alert('Time collision with: ' + collidingEvents);
+        else $http(req).then(successCb, errorCb);
     };
+
+    function convertTimeInputsToRangeArray(inputs) {
+        var MIN_PER_HOUR = 60;
+
+        var startHour = Number(inputs.startHour);
+        startHour = startHour % 12; //if hour is 12, hour becomes 0
+        var endHour = Number(inputs.endHour);
+        endHour = endHour % 12;
+        var startTime = startHour + Number(inputs.startMinute/MIN_PER_HOUR);
+        if (inputs.startAMPM == 'PM') startTime += 12;
+        var endTime = endHour + Number(inputs.endMinute/MIN_PER_HOUR); 
+        if (inputs.endAMPM == 'PM') endTime += 12;
+        var timeArr = [Number(parseFloat(startTime).toFixed(4)), Number(parseFloat(endTime).toFixed(4))];
+
+        return timeArr;
+    }
+
 
     $scope.openDayView = function(day, index) {
         $scope.dayViewDay = day;
@@ -227,14 +263,60 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
             $scope.timesInDay.push(i);
         }
 
-        $scope.showingDayView = true;
+        $scope.view = 'day';
     };
 
+    $scope.openWeekView = function() {
+        setWeekViewDays();
+        
+        $scope.timesInDay = [];
+        var startTime = 9; //6:00 AM
+        var endTime = 23.5; //11:30 PM
+
+        for(var i=startTime; i<=endTime; i+= .5) {
+            $scope.timesInDay.push(i);
+        }
+
+        $scope.view = 'week';
+    };
+
+    function setWeekViewDays() {
+        var WEEK_LENGTH = 7;
+        $scope.weekViewDays = [];
+        $scope.weekViewDays = $scope.days.slice(weekViewPointer, weekViewPointer + WEEK_LENGTH);
+    }
 
 // _ _ _ _ _ HELPER FUNCTIONS _ _ _ _ _ //
 
+    $scope.getWeekViewDayHeader = function(date) {
+        var dayName = $scope.dayNames[date.getDay()];
+        var dateNum = date.getDate();
+        var monthNum = date.getMonth();
+        return trim(dayName) + ' ' + trim(monthNames[monthNum]) + ' ' + dateNum;
+    };
+
+    $scope.disableSaveEventBtn = function() {
+        var inputs = $scope.eventInput;
+        var timeArr = convertTimeInputsToRangeArray(inputs);
+
+        if (inputs.name && timeArr[1] > timeArr[0]) return false;
+        else return true;
+    };
+
+    function checkTimeCollisions(timeArr1, timeArr2) {
+        var startTime1 = timeArr1[0];
+        var startTime2 = timeArr2[0];
+        var endTime1 = timeArr1[1];
+        var endTime2 = timeArr2[1];
+
+        if (startTime1 == startTime2) return true; // true means time collisions exist
+        if (startTime1 < startTime2) return (endTime1 > startTime2); 
+        if (startTime1 > startTime2) return (startTime1 < endTime2);
+    }
+
+
     $scope.openMonthView = function() {
-        $scope.showingDayView = false;
+        $scope.view = 'month';
     };
 
     $scope.calculateHeight = function(time) {
@@ -242,7 +324,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var eventLength = time[1] - time[0]; //in hours. 4.6667 = 4 hours and 40 minutes
         var height = eventLength * VERT_PIXELS_PER_HOUR;
 
-        return height;
+        return height + 'px';
     };
 
     $scope.assignMargin = function(time) {
@@ -251,6 +333,9 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var startTable = 9; //CHANGE TO MATCH OTHER 
         var timeFromTop = time[0] - startTable;
         var pixels = Math.round(timeFromTop * VERT_PIXELS_PER_HOUR);
+        
+        if($scope.view == 'week') pixels += 23; //for the extra row with day names in week view 
+
         return pixels + 'px';
     };
 
@@ -358,9 +443,8 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
 
     $scope.displayViewDate = function() {
         var returnString = '';
-        var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-        if($scope.showingDayView) {
+        if($scope.view == 'day') {
             var date = $scope.dayViewDay.date;
             var dayName = $scope.dayNames[date.getDay()];
             var monthName = monthNames[date.getMonth()];

@@ -16,15 +16,25 @@ a:hover, a:focus {
 
 .main-container {
 	margin-top: 10px;
+
 }
 
-.calendar-container {
+.month-days-container {
 	background: yellow;
 	margin: 0 auto 30px auto;
 	width: 1008px;
 	display: flex;
 	flex-wrap: wrap;
 }
+
+.week-view-container {
+	display: flex;
+	width: 1270px;
+	background: lightgray;
+	margin: 0 auto 30px auto;
+	border-left: 1px solid #666666;
+	border-bottom: 1px solid #666666;
+};
 
 .day {
 	border: 1px solid black;
@@ -46,6 +56,7 @@ a:hover, a:focus {
 	width: 144px;
 	text-align: center;
 	padding: 3px 0 3px 0;
+	letter-spacing: 1.2px;
 }
 
 .date-number {
@@ -308,16 +319,46 @@ a:hover, a:focus {
 	border-bottom: 1px solid #666666;
 }
 
+
+.week-view-day {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	width: 170px;	
+}
+
+.week-view-time-slot {
+	background: white;
+	border-top: 1px solid #666666;
+	border-right: 1px solid #666666;
+	width: 170px;
+	height: 23px;
+}
+
+.week-view-times-container {
+	display: flex;
+	flex-direction: column;
+}
+
 .time {
 	color: #808080;
 	padding-top: 0;
-	padding-left: 13px;
-	width: 90px;
 	font-size: .75em;
 	letter-spacing: .7px;
 	background: white;
 	border-top: 1px solid #666666;
 	border-right: 1px solid #666666;
+}
+
+.day-view-container .time {
+	padding-left: 14px;
+	width: 90px;
+}
+
+.week-view-container .time {
+	padding-left: 11px;
+	width: 80px;
+	height: 23px;
 }
 
 .time-slot {
@@ -334,19 +375,32 @@ a:hover, a:focus {
 	height: 23px;
 }
 
-.day-view-event {
+.dynamic-event {
 	position: absolute;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	border-top: 1px solid gray;
 	border-bottom: 1px solid gray;
-	font-size: 1.3em;
+	font-size: 1.26em;
 	text-align: center;
 	color: white;
+	opacity: .8;
+}
+
+.day-view-event {
 	left: 90px;
 	width: 788px;
-	opacity: .8;
+}
+
+.week-view-event {
+	width: 170px;
+}
+
+.week-view-day-name {
+	padding-top: 2.6px;
+	letter-spacing: 1.2px;
+	text-align: center;
 }
 
 .time-select {
@@ -378,4 +432,15 @@ a:hover, a:focus {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+}
+
+.week-view-btn {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	padding: 3px;
+	background: #595959;
+	color: white;
+	font-size: 1.2em;
+	border-radius: 3px;
 }
