@@ -1,78 +1,40 @@
-<a ng-click="openWeekView()" class="week-view-btn">
-show week
-</a>
-
-
-
-<a ng-click="showCategoryCreation()">
-	<i class="glyphicon glyphicon-plus-sign" ng-class="{'rotate':showingNewCategoryForm}"></i>
-</a>
-
-<section class="category-mgmt" ng-class="{'unhide':showingNewCategoryForm}">
-	<div class="popup-header category-mgmt-nav">
-		<div class="nav-tab" ng-click="showNewTab()" ng-class="{'unselected-tab':!showingNewTab}">New</div>
-		<div class="nav-tab" ng-click="showEditTab()" ng-class="{'unselected-tab':!showingEditTab}">Edit</div>
-	</div>
-	
-	<form name="newCategoryForm" class="new-category-form" ng-submit="createCategory()" ng-show="showingNewTab">
-		<div class="input-group">
-		  <span class="input-group-addon">Name</span>
-		  <input type="text" class="form-control" maxlength="15" required ng-model="categoryInput.name">
-		</div>
-		<div class="input-group">
-		  <span class="input-group-addon">Color</span>
-		  <input type="text" class="form-control" id="color1" required ng-model="categoryInput.color">
-		</div>
-		<button class="create-category-btn form-btn" type="submit" ng-disabled="newCategoryForm.$invalid">Save Category</button>
-	</form>
-	
-	<section ng-show="showingEditTab">
-		<div class="categories" ng-repeat="category in categories" ng-click="selectCategory(category)" 
-		ng-class="{'selected':category==selectedCategory}">
-			<div class="category-names">{{category.name}}</div>
-			<div class="category-colors" ng-style="{'background':'{{category.color}}'}"></div>
-		</div>
-
-		<form class="edit-category-form" name="editCategoryForm" ng-show="selectedCategory" >
-			<div class="input-group input-group-sm">
-			  <span class="input-group-addon">Name</span>
-			  <input type="text" class="form-control" maxlength="15" placeholder="{{selectedCategory.name}}" 
-			  ng-model="categoryInput.editName">
-			</div>
-			<div class="input-group input-group-sm">
-			  <span class="input-group-addon">Color</span>
-			  <input type="text" class="form-control" id="color2" ng-model="categoryInput.editColor">
-			</div>
-			<div class="category-edit-btns-container">
-				<button class="form-btn" ng-click="editCategory()" ng-disabled="disableEdit()">Save</button>
-				<button class="form-btn" ng-click="deleteCategory()">Delete</button>
-			</div>
-		</form>
-	</section>
-</section>
-
-
-
-
 <section ng-init="onPageLoad()" class="main-container">
 
+	<section class="view-btns-container">
+		<a ng-click="openMonthView()" class="switch-view-btn" ng-class="{'cur-view-btn':view == 'month'}"> month </a>
+		<a ng-click="openWeekView()" class="switch-view-btn" ng-class="{'cur-view-btn':view == 'week'}"> week </a>
+		<a ng-click="openDayView()" class="switch-view-btn" ng-class="{'cur-view-btn':view == 'day'}"> day </a>
+	</section>
+
+	<a ng-click="toggleCategoryMenu()">
+		<i class="glyphicon glyphicon-plus-sign" ng-class="{'rotate':showingCategoryMenu}"></i>
+	</a>
+
+
 	<div class="top-display-bar"> 
-		<a class="prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
-		<div ng-click="openMonthView()"> {{displayViewDate()}} </div>
-		<a class="next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
+		<a class="scroll-arrow prev-arrow no-select" ng-click="scroll(-1)">&#9668;</a> 
+		<div> {{displayViewDate()}} </div>
+		<a class="scroll-arrow next-arrow no-select" ng-click="scroll(1)">&#9658;</a> 
 	</div>
 
 	<section class="month-view-container" ng-show="view == 'month'">
 		<section class="day-names">
-			<div class="day-name" ng-repeat="name in dayNames" ng-class="setDayNameBG($index)">{{name}}</div>
+			<div class="day-name" ng-repeat="name in DAY_NAMES">{{name}}</div>
 		</section>
 
 		<section class="month-days-container">
-			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" 
-			ng-dblclick="openDayView(day, $index)">
-				<div class="date-number" ng-click="showEventCreationPopup(day)">{{day.date.getDate()}}</div> 
+			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" ng-drop="true" ng-drop-success="changeEventDate($data, $index)">
+				<div class="date-number" ng-class="assignDateNumClass(day.date)">{{day.date.getDate()}}</div> 
+				<div class="day-header"> 
+					<a ng-click="showEventCreationPopup(day)">
+						<i class="glyphicon glyphicon-plus"></i>
+					</a>
+					<a ng-click="openDayView(day)">
+						<i class="glyphicon glyphicon-resize-full"></i>
+					</a>
+				</div>
 				<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
-				ng-dblclick="deleteEvent(event._id, day)"> 
+				ng-dblclick="showEventEditPopup(event)" ng-drag="true" ng-drag-data="event"> 
 					{{event.name}} 
 				</div>
 			</div>
@@ -80,30 +42,35 @@ show week
 	</section>
 	
 	<section class="day-view-container" ng-show="view == 'day'">
-		<div class="time-slots" ng-repeat="time in timesInDay">
-			<div class="time">{{timify(time)}}</div>
-			<div class="time-slot"> </div>
+		<div class="times-container">
+			<div class="time" ng-repeat="time in timesInDay">{{timify(time)}}</div>
 		</div>
+			
+		<div class="event-slot" ng-repeat="time in timesInDay" ng-click="showEventCreationPopup(dayViewDay, time)"> </div>
 
 		<div class="dynamic-event day-view-event" ng-repeat="event in dayViewDay.events" 
-		ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}">
+		ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}" ng-click="showEventEditPopup(event)">
 			{{event.name}}
 		</div>
 	</section>
 
-
 	<section class="week-view-container" ng-show="view == 'week'">
-		<div class="week-view-times-container">
+		<div class="times-container">
 			<div class="time"></div>
 			<div class="time" ng-repeat="time in timesInDay">{{timify(time)}}</div>
 		</div>
 
 		<section class="week-view-day" ng-repeat="day in weekViewDays">
-			<div class="week-view-time-slot week-view-day-name"> {{getWeekViewDayHeader(day.date)}} </div>
-			<div class="week-view-time-slot" ng-repeat="time in timesInDay"></div>
+			<div class="week-view-time-slot week-view-day-name"> 
+				{{getWeekViewDayHeader(day.date)}} 
+				<a ng-click="openDayView(day)">
+					<i class="glyphicon glyphicon-resize-full"></i>
+				</a>
+			</div>
+			<div class="week-view-time-slot" ng-repeat="time in timesInDay" ng-click="showEventCreationPopup(day, time)"></div>
 			
 			<div class="dynamic-event week-view-event" ng-repeat="event in day.events" 
-			ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}">
+			ng-style="{'height':'{{calculateHeight(event.time)}}', 'top':'{{assignMargin(event.time)}}', 'background':'{{getColorFromCategory(event.category)}}'}" ng-click="showEventEditPopup(event)">
 			{{event.name}}
 			</div>
 		</section>
@@ -114,15 +81,11 @@ show week
 
 
 
+<section class="new-event-popup" ng-show="showingEventPopup">
+	<div ng-click="closeEventPopup()" class="new-event-close-btn"><i class="glyphicon glyphicon-remove"></i></div>
+	<div class="popup-header"> {{newOrEdit}} Event on <strong>{{eventDate}}</strong></div>
 
-
-
-
-<section class="new-event-popup" ng-show="showEventPopup">
-	<div ng-click="closeEventCreationPopup()" class="new-event-close-btn"><i class="glyphicon glyphicon-remove"></i></div>
-	<div class="popup-header"> New Event on <strong>{{newEventDate}}</strong></div>
-
-	<form name="eventForm" ng-submit="createEvent()">
+	<form name="eventForm" ng-submit="createOrEditEvent()">
 
 		<div class="input-group">
 		  <span class="input-group-addon">Name</span>
@@ -145,7 +108,7 @@ show week
 			  <select class="time-select start-am-pm" ng-options="str for str in AMPM" ng-model="eventInput.startAMPM">
 			  </select>
 
-			  <div class="select-divider"> &#8210; </div>
+			  <div class="select-divider"> &nbsp; &#8210; &nbsp; </div>
 
 				<select class="time-select start-hour" ng-options="hour for hour in hours" ng-model="eventInput.endHour">
 			  </select>
@@ -176,7 +139,62 @@ show week
 				value="{{category._id}}">{{category.name}}</option>
 			</select>
 		</div>
+		
+		<section ng-show="newOrEdit == 'New'">
+			<button type="submit" class="event-create-btn form-btn" ng-disabled="disableSaveEventBtn()">Save Event</button>
+		</section>
 
-		<button type="submit" class="event-create-btn form-btn" ng-disabled="disableSaveEventBtn()">Save Event</button>
+		<section class="event-btns-container" ng-show="newOrEdit == 'Edit'">
+			<button type="submit" class="form-btn edit-event-btn" ng-disabled="disableSaveEventBtn()">Save Event</button>
+			<button class="form-btn delete-event-btn" ng-click="deleteEvent()">Delete Event</button>
+		</section>
 	</form>
+</section>
+
+
+
+
+
+
+<section class="category-mgmt" ng-class="{'unhide':showingCategoryMenu}" ng-show="renderingCategoryMenu">
+	<div class="popup-header category-mgmt-nav">
+		<div class="nav-tab" ng-click="showNewTab()" ng-class="{'unselected-tab':!showingNewTab}">New</div>
+		<div class="nav-tab" ng-click="showEditTab()" ng-class="{'unselected-tab':!showingEditTab}">Edit</div>
+	</div>
+	
+	<form name="newCategoryForm" class="new-category-form" ng-submit="createCategory()" ng-show="showingNewTab">
+		<div class="input-group">
+		  <span class="input-group-addon">Name</span>
+		  <input type="text" class="form-control" maxlength="15" required ng-model="categoryInput.name">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Color</span>
+		  <input type="text" class="form-control" id="color1" required ng-model="categoryInput.color">
+		</div>
+		<button class="create-category-btn form-btn" type="submit" ng-disabled="newCategoryForm.$invalid">Save Category</button>
+	</form>
+	
+	<section ng-show="showingEditTab">
+		<div class="categories" ng-repeat="category in categories" ng-click="selectCategory(category)" 
+		ng-class="{'selected':category==selectedCategory}">
+			<div class="category-names">{{category.name}}</div>
+			<div class="category-colors" ng-style="{'background':'{{category.color}}'}"></div>
+		</div>
+
+		<form class="edit-category-form" name="editCategoryForm" ng-show="selectedCategory" >
+			<div class="input-group input-group-sm">
+			  <span class="input-group-addon">Name</span>
+			  <input type="text" class="form-control" maxlength="15" tabindex="-1" placeholder="{{selectedCategory.name}}" 
+			  ng-model="categoryInput.editName">
+			</div>
+			<div class="input-group input-group-sm">
+			  <span class="input-group-addon">Color</span>
+			  <input type="text" class="form-control" id="color2" ng-model="categoryInput.editColor">
+			</div>
+			<div class="category-edit-btns-container">
+				<button class="form-btn" ng-click="editCategory()" ng-disabled="disableEdit()">Save</button>
+				<button class="form-btn" tabindex="-1" ng-click="deleteCategory()">Delete</button>
+			</div>
+		</form>
+	</section>
 </section>

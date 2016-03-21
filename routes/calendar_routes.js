@@ -82,3 +82,13 @@ calendarRouter.put('/categories/edit/:id', bodyParser, function (req, res) {
     res.json({msg: 'Category modified.'});
   });
 });
+
+calendarRouter.put('/events/edit/:id', bodyParser, function (req, res) {
+  var eventData = req.body;
+  delete eventData._id;
+  Event.update({_id: req.params.id}, eventData, function (err) {
+    if (err) return handleError(err, res); 
+
+    res.json({msg: 'Event modified.'});
+  });
+});
