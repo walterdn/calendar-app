@@ -109,9 +109,8 @@
 	        if (url == '/') {
 	            user = 'public';
 	        } else {
-	            user = url.substring(1, url.length); //removes the slash from beginning of url
+	            user = url.substring(1, url.length).toLowerCase(); //removes the slash from beginning of url
 	        }
-	        console.log(user);
 	    }
 
 	    function loadCategories() {
@@ -124,7 +123,10 @@
 	    function loadCalendar() {
 	        curMonth.renderMonth();
 	        var indexOfToday = curMonth.getIndexOfToday();
-	        if (indexOfToday) setWeekViewPointer(indexOfToday);
+	        if (indexOfToday) {
+	            setWeekViewPointer(indexOfToday);
+	            dayViewPointer = indexOfToday;
+	        } 
 	        
 	        curMonth.loadEvents().then(function() {
 	            setDays();
@@ -777,6 +779,8 @@
 	    };
 
 	    $scope.changeEventDate = function(draggedEvent, receivingIndex) { //receivingIndex is index of receiving day within $scope.days
+	        if (!draggedEvent || !receivingIndex) return;
+
 	        var originalDate = draggedEvent.date;
 	        var originalIndex = dateToIndexMap[originalDate];
 	        var receivingDay = $scope.days[receivingIndex];
