@@ -104,7 +104,7 @@
 	    function loadCategories() {
 	        return $http.get('/categories/all').then(function (res){
 	            $scope.categories = res.data;
-	            $scope.selectedCategory = $scope.categories[0];
+	            $scope.selectCategory($scope.categories[0]);
 	        });
 	    }
 

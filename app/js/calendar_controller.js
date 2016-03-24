@@ -47,7 +47,7 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
     function loadCategories() {
         return $http.get('/categories/all').then(function (res){
             $scope.categories = res.data;
-            $scope.selectedCategory = $scope.categories[0];
+            $scope.selectCategory($scope.categories[0]);
         });
     }
 
@@ -559,7 +559,6 @@ app.controller('CalendarController', ['$scope', '$http', function($scope, $http)
         var successCb = function(res) {
             $scope.selectedCategory = null;
             loadCategories().then(loadCalendar);
-            angular.element('.colorPicker-picker').css('background', 'white');
             console.log('Category deleted.');
         };
         var errorCb = function(err) {
