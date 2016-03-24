@@ -23,8 +23,12 @@ calendarRouter.get('/events/date/:date', function(req, res) {
   });
 });
 
-calendarRouter.get('/events/year-month/:yearmonth', function(req, res) {
-  Event.find({yearmonth: req.params.yearmonth}, function(err, data) {
+calendarRouter.post('/events/range', bodyParser, function(req, res) {
+  var rangeObj = req.body;
+  var startDate = rangeObj.start;
+  var endDate = rangeObj.end;
+
+  Event.find({dateObj : {$gte: startDate, $lte: endDate}}, function(err, data) {
     if (err) return handleError(err, res);
 
     res.json(data);
