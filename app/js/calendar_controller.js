@@ -52,9 +52,8 @@ app.controller('CalendarController', ['$scope', '$location', '$http', function($
         if (url == '/') {
             user = 'public';
         } else {
-            user = url.substring(1, url.length); //removes the slash from beginning of url
+            user = url.substring(1, url.length).toLowerCase(); //removes the slash from beginning of url
         }
-        console.log(user);
     }
 
     function loadCategories() {
