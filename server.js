@@ -13,6 +13,6 @@ app.use(express.static(__dirname + '/build'));
 app.use(calendarRouter);
 
 app.listen(port, function() {
-  console.log('Server up.');
+  console.log('Server up at port ' + port);
 });
 
