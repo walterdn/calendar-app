@@ -15,20 +15,20 @@ calendarRouter.get('/events/all', function(req, res) {
   });
 });
 
-calendarRouter.get('/events/date/:date', function(req, res) {
-  Event.find({date: req.params.date}, function(err, data) {
+calendarRouter.get('/events/date/:date/:user', function(req, res) {
+  Event.find({date: req.params.date, user: req.params.user}, function(err, data) {
     if (err) return handleError(err, res);
 
     res.json(data);
   });
 });
 
-calendarRouter.post('/events/range', bodyParser, function(req, res) {
+calendarRouter.post('/events/range/:user', bodyParser, function(req, res) {
   var rangeObj = req.body;
   var startDate = rangeObj.start;
   var endDate = rangeObj.end;
 
-  Event.find({dateObj : {$gte: startDate, $lte: endDate}}, function(err, data) {
+  Event.find({dateObj : {$gte: startDate, $lte: endDate}, user: req.params.user}, function(err, data) {
     if (err) return handleError(err, res);
 
     res.json(data);
@@ -61,8 +61,8 @@ calendarRouter.post('/newcategory', bodyParser, function(req, res) {
   });
 });
 
-calendarRouter.get('/categories/all', function(req, res) {
-  Category.find({}, function(err, data) {
+calendarRouter.get('/categories/all/:user', function(req, res) {
+  Category.find({user: req.params.user}, function(err, data) {
     if (err) return handleError(err, res);
 
     res.json(data);

@@ -59,9 +59,9 @@
 	var CalMonth = __webpack_require__(3);
 
 	module.exports = function(app) {
-	app.controller('CalendarController', ['$scope', '$http', function($scope, $http) {
+	app.controller('CalendarController', ['$scope', '$location', '$http', function($scope, $location, $http) {
 
-	    var curMonth = new CalMonth($http); 
+	    var curMonth; 
 
 	// _ _ _ _ _ SCOPE VARIABLES _ _ _ _ _ //
 
@@ -82,6 +82,7 @@
 
 	// _ _ _ _ _ GLOBAL VARIABLES _ _ _ _ _ //
 
+	    var user;
 	    var today = new Date(); 
 	    var dayPointer; //gets set by showEventCreationPopup, then accessed again in createEvent should the user save an event
 	    var eventPointer; //gets set by showEventEditPopup, accessed again in editEvent
@@ -96,13 +97,25 @@
 	// _ _ _ _ _ MAIN FUNCTIONS TO MANAGE THE VIEW _ _ _ _ _ //
 
 	    $scope.onPageLoad = function() { //runs on init. 
+	        setUser();
+	        curMonth = new CalMonth($http, user); 
 	        angular.element('#color1').colorPicker();
 	        angular.element('#color2').colorPicker();
 	        loadCategories().then(loadCalendar); //renders calendar after loading categories
 	    };
 
+	    function setUser() {
+	        var url = $location.url();
+	        if (url == '/') {
+	            user = 'public';
+	        } else {
+	            user = url.substring(1, url.length); //removes the slash from beginning of url
+	        }
+	        console.log(user);
+	    }
+
 	    function loadCategories() {
-	        return $http.get('/categories/all').then(function (res){
+	        return $http.get('/categories/all/' + user).then(function (res){
 	            $scope.categories = res.data;
 	            $scope.selectCategory($scope.categories[0]);
 	        });
@@ -563,7 +576,7 @@
 
 	        var successCb = function(res) {
 	            console.log('Category saved.');
-	            $http.get('/categories/all').then(function (res){
+	            $http.get('/categories/all/' + user).then(function (res){
 	                $scope.categoryInput = {};
 	                var lastCategoryAdded = res.data[res.data.length-1];
 	                $scope.categories.push(lastCategoryAdded);
@@ -579,7 +592,8 @@
 	            data: 
 	                {   
 	                    name: inputs.name,
-	                    color: inputs.color
+	                    color: inputs.color,
+	                    user: user
 	                }
 	        };
 
@@ -658,7 +672,7 @@
 
 	        var successCb = function(res) {          
 	            $scope.eventInput = {}; //resets input fields
-	            $http.get('/events/date/' + eventDate).then(function (res) {
+	            $http.get('/events/date/' + eventDate + '/' + user).then(function (res) {
 	                $scope.days[dayIndex].events = res.data.sort(function(a, b) {
 	                    return a.time[0] - b.time[0];
 	                });
@@ -706,7 +720,7 @@
 
 	        var successCb = function(res) {          
 	            $scope.eventInput = {}; //resets input fields
-	            $http.get('/events/date/' + eventDate).then(function (res) {
+	            $http.get('/events/date/' + eventDate + '/' + user).then(function (res) {
 	                var index = dateToIndexMap[eventDate];
 	                $scope.days[index].events = res.data.sort(function(a, b) {
 	                    return a.time[0] - b.time[0];
@@ -730,7 +744,8 @@
 	                    date: eventDate,
 	                    time: time,
 	                    category: inputs.category,
-	                    dateObj: dayPointer.date
+	                    dateObj: dayPointer.date,
+	                    user: user
 	                }
 	        };
 
@@ -744,7 +759,7 @@
 
 	        var successCb = function(res) {
 	            console.log('Event deleted.');
-	            $http.get('/events/date/' + eventDate).then(function (res){ //reloads events for that day after deletion
+	            $http.get('/events/date/' + eventDate + '/' + user).then(function (res){ //reloads events for that day after deletion
 	                $scope.days[dayIndex].events = res.data.sort(function(a, b) {
 	                    return (a.time[0] - b.time[0]);
 	                });
@@ -776,12 +791,12 @@
 	            });
 
 	            var successCb = function(res) {          
-	                $http.get('/events/date/' + originalDate).then(function (res) {
+	                $http.get('/events/date/' + originalDate + '/' + user).then(function (res) {
 	                    $scope.days[originalIndex].events = res.data.sort(function(a, b) {
 	                        return a.time[0] - b.time[0];
 	                    });
 	                });
-	                $http.get('/events/date/' + receivingDate).then(function (res) {
+	                $http.get('/events/date/' + receivingDate + '/' + user).then(function (res) {
 	                    $scope.days[receivingIndex].events = res.data.sort(function(a, b) {
 	                        return a.time[0] - b.time[0];
 	                    });
@@ -955,13 +970,14 @@
 
 	var h = __webpack_require__(2);
 
-	var CalendarMonth = function(http) {
+	var CalendarMonth = function(http, user) {
 
 	    //one "calendar month" contains more than just the days in a month. It may also contain extra days from
 	    //previous month or following month, so that the number of days will be a multiple of 7 and the calendar
 	    //can maintain a Sunday - Saturday format. 
 
 		var $http = http;
+	    var user = user;
 	    var today = new Date(); 
 	    var curMonthNum = today.getMonth(); //month which calendar is currently displaying. Intializes to current month
 	    var year = today.getFullYear(); //year which calendar is currently displaying. Initializes to current year
@@ -1012,7 +1028,7 @@
 
 	        var req = {
 	            method: 'POST',
-	            url:'/events/range',
+	            url:'/events/range/' + user,
 	            data: rangeObj
 	        };
 
@@ -1086,7 +1102,8 @@
 	    })
 
 	    .otherwise({
-	      redirectTo: '/'
+	      templateUrl: '/templates/calendar.html',
+	      controller: 'CalendarController'
 	    })
 	}]);
 

@@ -14,6 +14,7 @@ calendarApp.config(['$routeProvider', function($route) {
     })
 
     .otherwise({
-      redirectTo: '/'
+      templateUrl: '/templates/calendar.html',
+      controller: 'CalendarController'
     })
 }]);

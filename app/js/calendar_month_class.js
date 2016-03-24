@@ -1,12 +1,13 @@
 var h = require('./static_functions');
 
-var CalendarMonth = function(http) {
+var CalendarMonth = function(http, user) {
 
     //one "calendar month" contains more than just the days in a month. It may also contain extra days from
     //previous month or following month, so that the number of days will be a multiple of 7 and the calendar
     //can maintain a Sunday - Saturday format. 
 
 	var $http = http;
+    var user = user;
     var today = new Date(); 
     var curMonthNum = today.getMonth(); //month which calendar is currently displaying. Intializes to current month
     var year = today.getFullYear(); //year which calendar is currently displaying. Initializes to current year
@@ -57,7 +58,7 @@ var CalendarMonth = function(http) {
 
         var req = {
             method: 'POST',
-            url:'/events/range',
+            url:'/events/range/' + user,
             data: rangeObj
         };
 
