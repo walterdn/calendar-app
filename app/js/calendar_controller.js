@@ -391,13 +391,13 @@ app.controller('CalendarController', ['$scope', '$location', '$http', function($
         return color;           
     };
 
-    $scope.setBG = function(date) {
+    $scope.assignStyle = function(date) {
         var monthNum = date.getMonth();
         var dateNum = date.getDate();
         var curMonthNum = curMonth.getMonthNum();
 
-        if (monthNum !== curMonthNum) return 'out-of-cur-month';
-        else return 'no-style';
+        if (monthNum !== curMonthNum) return 'out-cur-month';
+        else return 'in-cur-month';
     };
 
     $scope.assignDateNumClass = function(date) {
@@ -408,7 +408,6 @@ app.controller('CalendarController', ['$scope', '$location', '$http', function($
         var yearNum = date.getFullYear();
 
         if (dateNum == today.getDate() && monthNum == today.getMonth() && yearNum == today.getFullYear()) return 'current-day';
-        if (monthNum !== curMonthNum) return 'out-of-current-month';
         else return 'no-style';
     };
 

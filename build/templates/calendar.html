@@ -23,13 +23,13 @@
 		</section>
 
 		<section class="month-days-container">
-			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" ng-drop="true" ng-drop-success="changeEventDate($data, $index)">
+			<div class="day" ng-repeat="day in days" ng-class="assignStyle(day.date)" ng-drop="true" ng-drop-success="changeEventDate($data, $index)">
 				<div class="date-number" ng-class="assignDateNumClass(day.date)">{{day.date.getDate()}}</div> 
-				<div class="day-header-btns"> 
-					<a ng-click="showEventCreationPopup(day)">
+				<div class="day-header-btns-container"> 
+					<a class="day-header-btn" ng-click="showEventCreationPopup(day)">
 						<i class="glyphicon glyphicon-plus"></i>
 					</a>
-					<a ng-click="openDayView(day)">
+					<a class="day-header-btn" ng-click="openDayView(day)">
 						<i class="glyphicon glyphicon-resize-full"></i>
 					</a>
 				</div>

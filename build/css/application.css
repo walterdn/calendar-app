@@ -89,22 +89,29 @@ a.switch-view-btn:hover {
   border-left: 1px solid #b3b3b3;
   border-bottom: 1px solid #b3b3b3; }
 
-.day-header-btns {
+.day-header-btns-container {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  z-index: 2; }
+  color: inherit;
+  height: 20.5px; }
 
 .date-number {
   position: absolute;
-  bottom: -13px;
-  right: 1px;
+  bottom: -10px;
+  right: 6px;
   font-size: 68px;
   z-index: 0;
-  color: #d0d0d0; }
+  color: inherit;
+  pointer-events: none; }
 
-.out-of-cur-month {
-  background: #e6e6e6; }
+.out-cur-month {
+  background: #e6e6e6;
+  color: white; }
+
+.in-cur-month {
+  background: white;
+  color: #d0d0d0; }
 
 .scroll-arrow {
   position: absolute;
@@ -137,7 +144,7 @@ a.switch-view-btn:hover {
   border-radius: 12px;
   padding: 2px;
   font-size: .98em;
-  z-index: 3;
+  z-index: 1;
   opacity: .79; }
 
 .event:hover {
@@ -149,10 +156,7 @@ a.switch-view-btn:hover {
   color: white; }
 
 .current-day {
-  color: #4d4d4d; }
-
-.out-of-current-month {
-  color: white; }
+  color: #595959 !important; }
 
 .no-select {
   -webkit-touch-callout: none;
@@ -189,7 +193,7 @@ a.switch-view-btn:hover {
   width: 400px;
   top: 20%;
   left: 35%;
-  z-index: 5; }
+  z-index: 3; }
 
 .popup-header {
   font-size: 1.15em;
@@ -250,7 +254,7 @@ a.switch-view-btn:hover {
   top: 82px;
   right: -330px;
   width: 330px;
-  z-index: 6;
+  z-index: 4;
   -webkit-transition: -webkit-transform 1s;
   transition: transform 1s; }
 
@@ -482,22 +486,33 @@ a.switch-view-btn:hover {
   top: 22px;
   left: 0px; }
 
-.month-view-container .glyphicon-resize-full {
-  color: #ececec;
+.day-header-btn {
+  color: inherit; }
+
+.day-header-btn:hover {
+  text-decoration: none;
+  color: #6c6c6c; }
+
+.month-view-container .day .glyphicon {
+  display: none;
   margin-top: 2px;
+  color: inherit; }
+
+.month-view-container .day .glyphicon-resize-full {
   margin-right: 2px; }
 
-.month-view-container .glyphicon-plus {
-  color: #ececec;
-  margin-top: 2px;
-  margin-top: 2px;
+.month-view-container .day .glyphicon-plus {
   margin-left: 2px; }
 
-.month-view-container .glyphicon-resize-full:hover, .glyphicon-plus:hover {
-  color: #a6a6a6; }
+.month-view-container .day:hover .glyphicon {
+  display: block;
+  z-index: 2; }
 
-.day-header-btns:hover {
-  z-index: 4; }
+.month-view-container .day:hover .date-number {
+  z-index: 2; }
+
+.month-view-container .glyphicon-resize-full:hover, .month-view-container .glyphicon-plus:hover {
+  color: #6c6c6c; }
 
 .week-view-container .glyphicon-resize-full {
   position: absolute;
@@ -506,4 +521,4 @@ a.switch-view-btn:hover {
   right: 1px; }
 
 .week-view-container .glyphicon-resize-full:hover {
-  color: #999999; }
+  color: #6c6c6c; }
