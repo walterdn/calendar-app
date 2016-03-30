@@ -779,7 +779,7 @@
 	    };
 
 	    $scope.changeEventDate = function(draggedEvent, receivingIndex) { //receivingIndex is index of receiving day within $scope.days
-	        if (!draggedEvent || !receivingIndex) return;
+	        if (!draggedEvent || receivingIndex === null || receivingIndex === undefined) return;
 
 	        var originalDate = draggedEvent.date;
 	        var originalIndex = dateToIndexMap[originalDate];
@@ -822,7 +822,12 @@
 	            };
 
 	            if (collidingEvents.length > 0) alert('Time collision with: ' + collidingEvents);
-	            else $http(req).then(successCb, errorCb);
+	            else {
+	                $scope.days[receivingIndex].events.push(draggedEvent);
+	                var indexInEventArr = $scope.days[originalIndex].events.indexOf(draggedEvent);
+	                $scope.days[originalIndex].events.splice(indexInEventArr, 1);
+	                $http(req).then(successCb, errorCb);
+	            } 
 	        }
 	    };
 
