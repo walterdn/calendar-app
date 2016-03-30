@@ -25,7 +25,7 @@
 		<section class="month-days-container">
 			<div class="day" ng-repeat="day in days" ng-class="setBG(day.date)" ng-drop="true" ng-drop-success="changeEventDate($data, $index)">
 				<div class="date-number" ng-class="assignDateNumClass(day.date)">{{day.date.getDate()}}</div> 
-				<div class="day-header"> 
+				<div class="day-header-btns"> 
 					<a ng-click="showEventCreationPopup(day)">
 						<i class="glyphicon glyphicon-plus"></i>
 					</a>
@@ -34,7 +34,8 @@
 					</a>
 				</div>
 				<div ng-repeat="event in day.events" class="event" ng-style="{'background':'{{getColorFromCategory(event.category)}}'}"
-				ng-dblclick="showEventEditPopup(event)" ng-drag="true" ng-drag-data="event"> 
+				ng-dblclick="showEventEditPopup(event)" 
+				ng-drag="true" ng-drag-data="event" ng-show="$index<6"> 
 					{{event.name}} 
 				</div>
 			</div>
