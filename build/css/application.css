@@ -105,6 +105,14 @@ a.switch-view-btn:hover {
   color: inherit;
   pointer-events: none; }
 
+.date-number-overlay {
+  position: absolute;
+  height: 34px;
+  width: 58px;
+  bottom: 0;
+  right: 0;
+  z-index: 2; }
+
 .out-cur-month {
   background: #e6e6e6;
   color: white; }
@@ -508,7 +516,7 @@ a.switch-view-btn:hover {
   display: block;
   z-index: 2; }
 
-.month-view-container .day:hover .date-number {
+.month-view-container .date-number-overlay:hover + .date-number {
   z-index: 2; }
 
 .month-view-container .glyphicon-resize-full:hover, .month-view-container .glyphicon-plus:hover {
